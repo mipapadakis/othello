@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">Othello</string>
+    <string name="empty"> </string>
+
+    <!-- main_layout -->
+    <string name="play">Play</string>
+    <string name="scores">Scores</string>
+    <string name="help">Help</string>
+
+    <!-- choose_mode_layout -->
+    <string name="choose_mode">Choose Mode:</string>
+    <string name="ai">vs. AI</string>
+    <string name="online">Online</string>
+    <string name="two_users">2 Users</string>
+
+    <!-- info_layout -->
+    <string name="help_title">Game Rules:</string>
+    <string name="help_text">GAME PLAY:\n
+        Othello is a strategy board game played between 2 players. One player plays black and the other white. Each player gets 32 tiles and black always starts the game. Then the game alternates between white and black until:\n\n
+        i) one player can not make a valid move to outflank the opponent.\n
+        ii) both players have no valid moves\n\n
+        When a player has no valid moves, he passes his turn and the opponent continues. When both players have no valid moves, the game ends.\n
+        The board will start with 2 black tiles and 2 white tiles at the centre of the board.\n\n
+        VALID MOVES:\n
+        A move is made by placing a tile of the player\'s color on the board in a position that "out-flanks" one or more of the opponent\'s tiles. A tile or row of tiles is outflanked when it is surrounded at the ends by tiles of the opposite color.\n
+        A tile may outflank any number of tiles in one or more rows in any direction (horizontal, vertical, diagonal). Tiles may only be outflanked as a direct result of a move and must fall in the direct line of the tile being played.\n
+        All the tiles which are outflanked will be flipped (they become the opposite color), even if it is to the player\'s advantage not to flip them.\n
+        If you can\'t outflank and flip at least one opposing tile, you must pass your turn. However, if a move is available to you, you can\'t forfeit your turn.\n
+        Once a tile has been placed on a square, it can never be moved to another square later in the game.\n\n
+        END OF GAME:\n
+        When it is no longer possible for either player to move, the game is over. The tiles are now counted and the player with the majority of his or her color tiles on the board is the winner (a tie is possible).\n
+    </string>
+
+    <string name="scores_title">Scores:</string>
+    <string name="scores_text">Not implemented yet</string>
+
+    <!-- board_layout -->
+    <string name="tile">Tile</string>
+
+</resources>
+
+    <!-- TODO: add time counters for both players, and a time limit option. -->
+    <!-- TODO: save games (vs AI & 2 users) -->
