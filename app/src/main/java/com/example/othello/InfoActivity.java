@@ -7,9 +7,9 @@ import android.text.method.ScrollingMovementMethod;
 import android.widget.TextView;
 
 public class InfoActivity extends AppCompatActivity {
-    protected static String KEY_SCORES = "scores";
-    protected static String KEY_HELP = "help";
-    protected static String KEY_NOTE = "note";
+    protected static final String KEY_SCORES = "scores";
+    protected static final String KEY_HELP = "help";
+    protected static final String KEY_NOTE = "note";
     private TextView title;
     private TextView text;
     private Intent intent;

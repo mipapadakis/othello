@@ -36,6 +36,8 @@
 
     <!-- board_layout -->
     <string name="tile">Tile</string>
+    <string name="now_plays">Now Plays:</string>
+    <string name="invalid">Invalid Move!</string>
 
 </resources>
 
