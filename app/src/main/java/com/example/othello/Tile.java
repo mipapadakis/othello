@@ -1,35 +1,28 @@
 package com.example.othello;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class Tile{
-    public static final int GREEN = 65280;
-    public static final int WHITE = 16777215;
-    public static final int BLACK = 0;
-    protected Context context;
-    protected Toast toast;
+class Tile{
+    private static final int GREEN = 65280;
+    static final int WHITE = 16777215;
+    static final int BLACK = 0;
     private Button button;
     private int color;
     private  Tile[] neighbor; //neighbor[0] is the tile above this board. Move in a clockwise rotation to find the rest (explained in detail in method setNeighbors).
 
-    public Tile(){
+    Tile(){
         neighbor = new Tile[8];
         button=null;
         color=GREEN;
     }
 
-    public Tile(int color){
-        neighbor = new Tile[8];
-        button=null;
-        this.color=color;
-    }
-
-    protected void setContext(Context c){ context = c; }
-    public void setButton(View v){ button = (Button) v; }
-    public void setColor(int color){
+    void setButton(View v){ button = (Button) v; }
+    Button getButton(){ return button; }
+    void setColor(int color){
         if(color==WHITE)
             button.setBackgroundResource(R.drawable.white);
         if(color==BLACK)
@@ -38,35 +31,8 @@ public class Tile{
             button.setBackgroundResource(R.drawable.green);
         this.color = color;
     }
-    public void setOnClickListener(Context c, int gameMode){
-        context = c;
-        if(gameMode==BoardActivity.MODE_TWO_USERS){
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Boolean valid, turnBlack = BoardActivity.turnBlack();
-                    if(turnBlack) {
-                        valid = flipTiles(BLACK);
-                    }
-                    else {
-                        valid = flipTiles(WHITE);
-                    }
-                    if(valid)
-                        BoardActivity.setTurnBlack(!turnBlack);
-                    else
-                        showToast(context, context.getResources().getString(R.string.invalid));
-                }
-            });
-        }
-        else if(gameMode==BoardActivity.MODE_ONLINE){
-
-        }
-        else{
-
-        }
-    }
-
-    public int getColor(){ return color; }
+    private int getColor(){ return color; }
+    /*
     public boolean isEmpty(){ return color==GREEN; }
     public boolean isWhite(){ return color==WHITE; }
     public boolean isBlack(){ return color==BLACK; }
@@ -112,9 +78,9 @@ public class Tile{
     public void setColorNW(int color){
         if(neighbor[7]!=null)
             neighbor[7].setColor(color);
-    }
+    }*/
 
-    protected void setNeighbors(Tile[][] board, int row, int col){
+    void setNeighbors(Tile[][] board, int row, int col){
         Tile tile = board[row][col];
 
         //   [NW][N ][NE]     [7] [0] [1]
@@ -172,14 +138,14 @@ public class Tile{
     }
 
     //Called when a player makes a move. Returns false if the move is invalid. Else, returns true and flips the appropriate tiles of the board.
-    protected boolean flipTiles(int color){
-        Tile examineTile=this;
+    static boolean flipTiles(Tile t, int color){
+        Tile examineTile=t;
         boolean flag=false;
 
-        if(this.color!=GREEN)
+        if(t.color!=GREEN)
             return false;
         for(int direction=0; direction<8; direction++){
-            if(flipAllowed(color, direction)){
+            if(flipAllowed(t, color, direction)){
                 if(!flag)
                     flag=true;
 
@@ -187,19 +153,19 @@ public class Tile{
                     examineTile=examineTile.neighbor[direction];
                     examineTile.setColor(color);
                 }while(examineTile.neighbor[direction].getColor()!=color);
-                examineTile=this;
+                examineTile=t;
             }
         }
         if(flag)
-            setColor(color);
+            t.setColor(color);
         return flag;
     }
 
     // Parameter <color> = the color of the tile that was just placed.
     // Parameter <direction> = the direction in which we examine if any tiles will be flipped.
     // Return true if the move leads to any tile-flipping in the specific direction. Else, return false.
-    private boolean flipAllowed(int color, int direction){
-        Tile examineTile = neighbor[direction]; // direction: N=0, NE=1, E=2, SE=3, S=4, SW=5, W=6, NW=7
+    private static boolean flipAllowed(Tile  t, int color, int direction){
+        Tile examineTile = t.neighbor[direction]; // direction: N=0, NE=1, E=2, SE=3, S=4, SW=5, W=6, NW=7
         int oppositeColor;
 
         if(color==WHITE)
@@ -220,13 +186,6 @@ public class Tile{
         return true;
     }
 
-
-    protected void showToast(Context c, String str){
-        if(toast != null)
-            toast.cancel();
-        toast = Toast.makeText(c, str, Toast.LENGTH_SHORT);
-        toast.show();
-    }
 }
 
 //TODO: check if a player has no valid move. If both, game ends => declare winner.

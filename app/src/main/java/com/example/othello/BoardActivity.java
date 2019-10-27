@@ -3,6 +3,7 @@ package com.example.othello;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -11,7 +12,8 @@ public class BoardActivity extends AppCompatActivity {
     protected static final int MODE_VS_AI=0;
     protected static final int MODE_ONLINE=1;
     protected static final int MODE_TWO_USERS=2;
-    private static ImageView nowPlaysIV;
+    private ImageView nowPlaysIV;
+    protected Toast toast;
     protected Tile[][] board;
     protected static boolean turnBlack;
     protected static int gameMode;
@@ -20,9 +22,9 @@ public class BoardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.board_layout);
-        nowPlaysIV = findViewById(R.id.nowPlaysIV);
-        turnBlack=true; // First turn plays black
+        turnBlack = true; // First turn plays black
         gameMode = MODE_TWO_USERS; // By default: two users
+        nowPlaysIV = findViewById(R.id.nowPlaysIV);
 
         Intent intent = getIntent();
         if(intent.hasExtra(KEY_MODE)) {
@@ -54,20 +56,106 @@ public class BoardActivity extends AppCompatActivity {
         addClickListeners();
     }
 
-    public static boolean turnBlack(){ return turnBlack; }
-    public static void setTurnBlack(boolean b){
+    protected void onPause() {
+        if(toast!=null){
+            toast.cancel();
+        }
+        super.onPause();
+    }
+
+    private void addClickListeners(){
+        for(Tile[] row : board){
+            for(final Tile tile: row){
+                if(gameMode==MODE_TWO_USERS){
+                    tile.getButton().setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            boolean valid;
+                            if(turnBlack)
+                                valid = Tile.flipTiles(tile, Tile.BLACK);
+                            else
+                                valid = Tile.flipTiles(tile, Tile.WHITE);
+
+                            if(valid)
+                                setTurnBlack(!turnBlack);
+                            else
+                                showToast(getResources().getString(R.string.invalid));
+                        }
+                    });
+                }
+                else if(gameMode==MODE_ONLINE){
+                    showToast("Online PvP not Implemented yet");
+                    boolean valid;
+                    if(turnBlack)
+                        valid = Tile.flipTiles(tile, Tile.BLACK);
+                    else
+                        valid = Tile.flipTiles(tile, Tile.WHITE);
+
+                    if(valid)
+                        setTurnBlack(!turnBlack);
+                    else
+                        showToast(getResources().getString(R.string.invalid));
+                }
+                else{
+                    showToast("Player vs. AI not Implemented yet");
+                    boolean valid;
+                    if(turnBlack)
+                        valid = Tile.flipTiles(tile, Tile.BLACK);
+                    else
+                        valid = Tile.flipTiles(tile, Tile.WHITE);
+
+                    if(valid)
+                        setTurnBlack(!turnBlack);
+                    else
+                        showToast(getResources().getString(R.string.invalid));
+                }
+            }
+        }
+
+        /*
+        for(int i=0; i<8; i++){
+            for(int j=0; j<8; j++){
+                justClicked = board[i][j];
+                if(gameMode==MODE_TWO_USERS){
+                    justClicked.getButton().setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            boolean valid;
+                            if(turnBlack)
+                                valid = justClicked.flipTiles(justClicked, Tile.BLACK);
+                            else
+                                valid = justClicked.flipTiles(justClicked, Tile.WHITE);
+
+                            if(valid)
+                                setTurnBlack(!turnBlack);
+                            else
+                                showToast(getResources().getString(R.string.invalid));
+                        }
+                    });
+                }
+                else if(gameMode==MODE_ONLINE){
+                    showToast("Online PvP not Implemented yet");
+                }
+                else{
+                    showToast("Player vs. AI not Implemented yet");
+                }
+
+            }
+        }
+        /*
+        for(int i=0; i<8; i++){
+            for(int j=0; j<8; j++){
+                board[i][j].setOnClickListener(getApplicationContext(), gameMode);
+            }
+        }*/
+    }
+
+    private void setTurnBlack(boolean b){
         turnBlack=b;
         if(turnBlack)
             nowPlaysIV.setImageResource(R.drawable.black);
         else
             nowPlaysIV.setImageResource(R.drawable.white);
-    }
-    private void addClickListeners(){
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                board[i][j].setOnClickListener(getApplicationContext(), gameMode);
-            }
-        }
     }
 
     private void initialiseButtons(){
@@ -142,5 +230,12 @@ public class BoardActivity extends AppCompatActivity {
         board[7][5].setButton( findViewById(R.id.tile75) );
         board[7][6].setButton( findViewById(R.id.tile76) );
         board[7][7].setButton( findViewById(R.id.tile77) );
+    }
+
+    protected void showToast(String str){
+        if(toast != null)
+            toast.cancel();
+        toast = Toast.makeText(BoardActivity.this, str, Toast.LENGTH_SHORT);
+        toast.show();
     }
 }
