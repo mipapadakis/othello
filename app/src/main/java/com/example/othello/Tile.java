@@ -7,9 +7,12 @@ import android.widget.Button;
 import android.widget.Toast;
 
 class Tile{
-    private static final int GREEN = 65280;
-    static final int WHITE = 16777215;
-    static final int BLACK = 0;
+    static final int BLACK = 0; //Don't change the value!
+    static final int WHITE = 1; //Don't change the value!
+    static final int GREEN = 2; //Don't change the value!
+    static final int CANT_PLAY = 100;
+    static final int CAN_PLAY = 101;
+    static final int BOARD_FULL = 102;
     private Button button;
     private int color;
     private  Tile[] neighbor; //neighbor[0] is the tile above this board. Move in a clockwise rotation to find the rest (explained in detail in method setNeighbors).
@@ -32,11 +35,11 @@ class Tile{
         this.color = color;
     }
     private int getColor(){ return color; }
-    /*
     public boolean isEmpty(){ return color==GREEN; }
-    public boolean isWhite(){ return color==WHITE; }
-    public boolean isBlack(){ return color==BLACK; }
+    boolean isWhite(){ return color==WHITE; }
+    boolean isBlack(){ return color==BLACK; }
 
+    /*
     public Tile getN(){  return neighbor[0]; }
     public Tile getNE(){ return neighbor[1]; }
     public Tile getE(){  return neighbor[2]; }
@@ -137,6 +140,29 @@ class Tile{
             neighbor[7]=board[row-1][col-1];
     }
 
+    //Return CANT_PLAY if the player with <color> tiles has no valid move to play.
+    //Return BOARD_FULL if the board is full.
+    //Return CAN_PLAY otherwise
+    static int ableToMove(Tile[][] board, int color){
+        boolean full=true;
+        for(int i=0; i<8; i++){
+            for(int j=0; j<8; j++){
+                if(board[i][j].isEmpty()) {
+                    if(full)
+                        full = false;
+                    //check if a tile can be played on this i,j position:
+                    for (int direction = 0; direction < 8; direction++) {
+                        if (flipAllowed(board[i][j], color, direction))
+                            return CAN_PLAY;
+                    }
+                }
+            }
+        }
+        if(full)
+            return BOARD_FULL;
+        return CANT_PLAY;
+    }
+
     //Called when a player makes a move. Returns false if the move is invalid. Else, returns true and flips the appropriate tiles of the board.
     static boolean flipTiles(Tile t, int color){
         Tile examineTile=t;
@@ -144,6 +170,8 @@ class Tile{
 
         if(t.color!=GREEN)
             return false;
+
+        //check
         for(int direction=0; direction<8; direction++){
             if(flipAllowed(t, color, direction)){
                 if(!flag)
@@ -175,7 +203,7 @@ class Tile{
         else
             return false;
 
-        if(examineTile==null || examineTile.getColor()!=oppositeColor)
+        if(!t.isEmpty() || examineTile==null || examineTile.getColor()!=oppositeColor)
             return false;
 
         do{

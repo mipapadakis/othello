@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Othello</string>
-    <string name="empty"> </string>
+    <string name="empty">\ </string>
+    <string name="black">Black</string>
+    <string name="white">White</string>
 
     <!-- main_layout -->
     <string name="play">Play</string>
@@ -38,6 +40,9 @@
     <string name="tile">Tile</string>
     <string name="now_plays">Now Plays:</string>
     <string name="invalid">Invalid Move!</string>
+    <string name="count">\ %d\ \ </string>
+    <string name="cant_play">%s has no available move. %s plays again.</string>
+    <string name="no_moves">Neither of the players have legal moves.\nGame Over!</string>
 
 </resources>
 

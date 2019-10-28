@@ -19,7 +19,8 @@ public class InfoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.info_layout);
-        getSupportActionBar().hide(); //Hide ActionBar
+        if(getSupportActionBar()!=null)
+            getSupportActionBar().hide(); //Hide ActionBar
         title = findViewById(R.id.info_titleTv);
         text = findViewById(R.id.info_textTv);
         text.setMovementMethod(new ScrollingMovementMethod());
