@@ -8,6 +8,8 @@
     <string name="play">Play</string>
     <string name="scores">Scores</string>
     <string name="help">Help</string>
+    <string name="exit">Exit Game?</string>
+    <string name="exit_msg">Are you sure you want to exit?</string>
 
     <!-- choose_mode_layout -->
     <string name="choose_mode">Choose Mode:</string>
@@ -43,6 +45,12 @@
     <string name="count">\ %d\ \ </string>
     <string name="cant_play">%s has no available move. %s plays again.</string>
     <string name="no_moves">Neither of the players have legal moves.\nGame Over!</string>
+    <string name="game_over">Game Over!</string>
+    <string name="win_white">White wins.</string>
+    <string name="win_black">Black wins.</string>
+    <string name="tie">It\'s a tie.</string>
+    <string name="main_menu">Main Menu</string>
+    <string name="play_again">Play Again</string>
 
 </resources>
 

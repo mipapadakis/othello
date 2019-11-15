@@ -53,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void onBackPressed(){
         new AlertDialog.Builder(this)
-            .setTitle("Exit Game?")
-            .setMessage("Are you sure you want to exit?")
+            .setTitle(getResources().getString(R.string.exit))
+            .setMessage(getResources().getString(R.string.exit_msg))
             .setNegativeButton(android.R.string.no, null)
             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface arg0, int arg1) {

@@ -1,6 +1,8 @@
 package com.example.othello;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -15,6 +17,7 @@ public class BoardActivity extends AppCompatActivity {
     protected static final int MODE_TWO_USERS=2;
     private ImageView nowPlaysIV;
     private TextView[] countTV;
+    protected int evaluation;
     protected Toast toast;
     protected Tile[][] board;
     protected static boolean turnBlack;
@@ -28,6 +31,7 @@ public class BoardActivity extends AppCompatActivity {
         if(getSupportActionBar()!=null)
             getSupportActionBar().hide(); //Hide ActionBar
         twoInARow=0;
+        evaluation=0;
         turnBlack = true; // First turn plays black
         gameMode = MODE_TWO_USERS; // By default: two users
         nowPlaysIV = findViewById(R.id.nowPlaysIV);
@@ -64,7 +68,6 @@ public class BoardActivity extends AppCompatActivity {
         board[4][3].setColor(Tile.BLACK);
         board[4][4].setColor(Tile.WHITE);
         updateCounts();
-
         addClickListeners();
     }
 
@@ -91,9 +94,10 @@ public class BoardActivity extends AppCompatActivity {
                             if (valid) {
                                 setTurnBlack(!turnBlack);
                                 updateCounts();
-                                if(!ableToMove()){
-                                    //TODO: Game Over dialog
-                                }
+                                evaluation = evaluateBoard(board);
+                                showToast("evaluation = "+evaluation);
+                                if(!ableToMove())
+                                    gameOverDialog();
 
                             } else
                                 showToast(getResources().getString(R.string.invalid));
@@ -132,9 +136,10 @@ public class BoardActivity extends AppCompatActivity {
                 showToast(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
             }
             setTurnBlack(!turnBlack);
+            return true;
         }
         else{ // ableToMove == Tile.BOARD_FULL
-            int[] c = countTiles();
+            int[] c = countTiles(board);
             if(c[Tile.BLACK]>c[Tile.WHITE]) {
                 showToast("Game Over. Black wins!");
             }
@@ -151,7 +156,7 @@ public class BoardActivity extends AppCompatActivity {
     // int[0] = int[Tile.BLACK] = countTV of black tiles
     // int[1] = int[Tile.WHITE] = countTV of white tiles
     // int[2] = int[Tile.GREEN] = countTV of green tiles
-    private int[] countTiles(){
+    private int[] countTiles(Tile[][] board){
         int[] count = new int[3];
         for(Tile[] row : board){
             for(final Tile tile: row){
@@ -166,9 +171,14 @@ public class BoardActivity extends AppCompatActivity {
         return count;
     }
 
+    private int evaluateBoard(Tile[][] board){
+        int[] count = countTiles(board);
+        return count[Tile.WHITE] - count[Tile.BLACK];
+    }
+
     //Show how many tiles of each color exist on the board.
     private void updateCounts(){
-        int[] c = countTiles();
+        int[] c = countTiles(board);
         countTV[Tile.BLACK].setText(String.format(getResources().getString(R.string.count),c[Tile.BLACK]));
         countTV[Tile.WHITE].setText(String.format(getResources().getString(R.string.count),c[Tile.WHITE]));
     }
@@ -268,5 +278,45 @@ public class BoardActivity extends AppCompatActivity {
             toast.cancel();
         toast = Toast.makeText(BoardActivity.this, str, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    private void gameOverDialog(){
+        String title = getResources().getString(R.string.game_over), msg = getResources().getString(R.string.tie);
+        if(evaluation>0)
+            msg = getResources().getString(R.string.win_white);
+        else if(evaluation<0)
+            msg = getResources().getString(R.string.win_black);
+
+        new AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(msg)
+            .setNegativeButton(getResources().getString(R.string.main_menu), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startActivity(new Intent(getApplicationContext(),MainActivity.class));
+                }
+            })
+            .setPositiveButton(getResources().getString(R.string.play_again), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    gameReset();
+                }
+            }).create().show();
+    }
+
+    private void gameReset(){
+        twoInARow=0;
+        evaluation=0;
+        turnBlack = true; // First turn plays black
+
+        for(int i=0; i<8; i++){
+            for(int j=0; j<8; j++){
+                board[i][j].setColor(Tile.GREEN);
+            }
+        }
+        board[3][3].setColor(Tile.WHITE);
+        board[3][4].setColor(Tile.BLACK);
+        board[4][3].setColor(Tile.BLACK);
+        board[4][4].setColor(Tile.WHITE);
+        updateCounts();
     }
 }
