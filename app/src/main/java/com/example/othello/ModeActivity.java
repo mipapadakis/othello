@@ -21,15 +21,16 @@ public class ModeActivity extends AppCompatActivity {
 
 
     private void initializeModeButtons(){
-        ((Button) findViewById(R.id.aiBtn)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.aiBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("NOTE","aiBtn");
-                createNoteIntent("Player vs. AI", "Not implemented yet");
+                Intent startIntent = new Intent(getApplicationContext(),BoardActivity.class);
+                startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.MODE_VS_AI_EASY);
+                startActivity(startIntent);
             }
         });
 
-        ((Button) findViewById(R.id.onlineBtn)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.onlineBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.i("NOTE","onlineBtn");
@@ -37,10 +38,9 @@ public class ModeActivity extends AppCompatActivity {
             }
         });
 
-        ((Button) findViewById(R.id.two_usersBtn)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.two_usersBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("NOTE","two_usersBtn");
                 //createNoteIntent("User vs. User", "Not implemented yet");
                 Intent startIntent = new Intent(getApplicationContext(),BoardActivity.class);
                 startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.MODE_TWO_USERS);

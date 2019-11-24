@@ -12,10 +12,10 @@ class Tile{
     static final int GREEN = 2; //Don't change the value!
     static final int CANT_PLAY = 100;
     static final int CAN_PLAY = 101;
-    static final int BOARD_FULL = 102;
+    private static final int BOARD_FULL = 102;
     private Button button;
     private int color;
-    private  Tile[] neighbor; //neighbor[0] is the tile above this board. Move in a clockwise rotation to find the rest (explained in detail in method setNeighbors).
+    Tile[] neighbor; //neighbor[0] is the tile above this board. Move in a clockwise rotation to find the rest (explained in detail in method setNeighbors).
 
     Tile(){
         neighbor = new Tile[8];
@@ -34,8 +34,8 @@ class Tile{
             button.setBackgroundResource(R.drawable.green);
         this.color = color;
     }
-    private int getColor(){ return color; }
-    public boolean isEmpty(){ return color==GREEN; }
+    int getColor(){ return color; }
+    boolean isEmpty(){ return color==GREEN; }
     boolean isWhite(){ return color==WHITE; }
     boolean isBlack(){ return color==BLACK; }
 
@@ -84,12 +84,10 @@ class Tile{
     }*/
 
     void setNeighbors(Tile[][] board, int row, int col){
-        Tile tile = board[row][col];
 
         //   [NW][N ][NE]     [7] [0] [1]
         //   [W ][  ][E ]  =  [6] [ ] [2]
         //   [SW][S ][SE]     [5] [4] [3]
-
 
         // NORTH = neighbor[0]
         if(row==0)
@@ -176,7 +174,6 @@ class Tile{
             if(flipAllowed(t, color, direction)){
                 if(!flag)
                     flag=true;
-
                 do{
                     examineTile=examineTile.neighbor[direction];
                     examineTile.setColor(color);
@@ -192,7 +189,7 @@ class Tile{
     // Parameter <color> = the color of the tile that was just placed.
     // Parameter <direction> = the direction in which we examine if any tiles will be flipped.
     // Return true if the move leads to any tile-flipping in the specific direction. Else, return false.
-    private static boolean flipAllowed(Tile  t, int color, int direction){
+    static boolean flipAllowed(Tile t, int color, int direction){
         Tile examineTile = t.neighbor[direction]; // direction: N=0, NE=1, E=2, SE=3, S=4, SW=5, W=6, NW=7
         int oppositeColor;
 

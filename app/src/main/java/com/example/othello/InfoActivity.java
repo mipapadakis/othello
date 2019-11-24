@@ -10,10 +10,6 @@ public class InfoActivity extends AppCompatActivity {
     protected static final String KEY_SCORES = "scores";
     protected static final String KEY_HELP = "help";
     protected static final String KEY_NOTE = "note";
-    private TextView title;
-    private TextView text;
-    private Intent intent;
-    private Bundle extras;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -21,11 +17,12 @@ public class InfoActivity extends AppCompatActivity {
         setContentView(R.layout.info_layout);
         if(getSupportActionBar()!=null)
             getSupportActionBar().hide(); //Hide ActionBar
-        title = findViewById(R.id.info_titleTv);
-        text = findViewById(R.id.info_textTv);
+        TextView title = findViewById(R.id.info_titleTv);
+        TextView text = findViewById(R.id.info_textTv);
         text.setMovementMethod(new ScrollingMovementMethod());
 
-        intent = getIntent();
+        Intent intent = getIntent();
+        Bundle extras;
         if(intent.hasExtra(KEY_SCORES)) {
             extras = intent.getExtras();
             assert extras != null;

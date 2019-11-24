@@ -48,9 +48,15 @@
     <string name="game_over">Game Over!</string>
     <string name="win_white">White wins.</string>
     <string name="win_black">Black wins.</string>
+    <string name="you_won">You won!</string>
+    <string name="you_lost">You lost!</string>
     <string name="tie">It\'s a tie.</string>
     <string name="main_menu">Main Menu</string>
     <string name="play_again">Play Again</string>
+    <string name="choose_color">Choose color!</string>
+    <string name="choose_color_txt">Do you want white tiles or black?</string>
+    <string name="error">Error!</string>
+    <string name="error_txt">An error has occurred! Play again or go to Main Menu?</string>
 
 </resources>
 
