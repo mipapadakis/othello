@@ -1,10 +1,7 @@
 package com.example.othello;
 
-import android.content.Context;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 class Tile{
     static final int BLACK = 0; //Don't change the value!
@@ -16,11 +13,19 @@ class Tile{
     private Button button;
     private int color;
     Tile[] neighbor; //neighbor[0] is the tile above this board. Move in a clockwise rotation to find the rest (explained in detail in method setNeighbors).
+    //int row;
+    //int col;
 
     Tile(){
         neighbor = new Tile[8];
         button=null;
         color=GREEN;
+    }
+
+    Tile( Tile t){
+        neighbor = new Tile[8];
+        setButton(t.getButton());
+        setColor(t.getColor());
     }
 
     void setButton(View v){ button = (Button) v; }
@@ -210,8 +215,4 @@ class Tile{
         }while(examineTile.getColor()==oppositeColor);
         return true;
     }
-
 }
-
-//TODO: check if a player has no valid move. If both, game ends => declare winner.
-//TODO: check if the board is full and declare winner.
