@@ -30,6 +30,7 @@ public class BoardActivity extends AppCompatActivity {
     protected Tile[][] board;
     protected static boolean turnBlack;
     protected static int gameMode;
+    protected static boolean AI_Mode;
 
     //Mode: player vs. AI
     protected static final int MODE_VS_AI_EASY =100;
@@ -37,7 +38,7 @@ public class BoardActivity extends AppCompatActivity {
     protected static final int MODE_VS_AI_HARD =120;
     protected static int playerColor;
     protected static int difficulty;
-    private int score;
+    private double score;
 
     // Mode: online
     protected static final int MODE_ONLINE=200;
@@ -71,6 +72,7 @@ public class BoardActivity extends AppCompatActivity {
                 gameMode = MODE_VS_AI_EASY;
             }
         }
+        AI_Mode = gameMode == MODE_VS_AI_EASY || gameMode == MODE_VS_AI_MEDIUM ||gameMode == MODE_VS_AI_HARD;
 
         //Initialize the TextViews that show how many tiles of each color exist on board
         countTV = new TextView[2];
@@ -98,7 +100,7 @@ public class BoardActivity extends AppCompatActivity {
         updateCounts();
         addClickListeners();
 
-        if(gameMode==MODE_VS_AI_EASY || gameMode==MODE_VS_AI_MEDIUM || gameMode==MODE_VS_AI_HARD)
+        if(AI_Mode)
             chooseColorDialog();
     }
 
@@ -137,7 +139,7 @@ public class BoardActivity extends AppCompatActivity {
     }
     private void nextTurn(){
         int[] c = countTiles(board);
-        score += c[playerColor]*(64-c[Tile.GREEN]);
+        score += c[playerColor]*(60-c[Tile.GREEN]);
 
         turnBlack=!turnBlack;
         if(playsBlack())
@@ -379,28 +381,24 @@ public class BoardActivity extends AppCompatActivity {
     private void gameOverDialog(){
         String title = getResources().getString(R.string.game_over), msg;
         if(evaluation==0) {
-            msg = getResources().getString(R.string.tie);
+            msg = getResources().getString(R.string.tie) + " Score: "+(int) fixScore(score);
             if(gameMode!=MODE_TWO_USERS)
                 commitResult(score);
         }
         else if(gameMode == MODE_TWO_USERS){
-            if( evaluation>0 ){
+            if( evaluation>0 )
                 msg = getResources().getString(R.string.win_white);
-            }
-            else{
+            else
                 msg = getResources().getString(R.string.win_black);
-            }
         }
         else{
             if( evaluation>0 && playerColor==Tile.WHITE || evaluation<0 && playerColor==Tile.BLACK){
-                msg = getResources().getString(R.string.you_won);
-                commitResult(score+1000);
+                msg = getResources().getString(R.string.you_won) + " Score: "+(int) fixScore(score);
+                commitResult(score);
             }
-            else{
+            else
                 msg = getResources().getString(R.string.you_lost);
-            }
         }
-        showToast("score = "+score);
 
         new AlertDialog.Builder(this)
             .setTitle(title)
@@ -419,8 +417,8 @@ public class BoardActivity extends AppCompatActivity {
     }
 
     //Top ten scores will be stored locally on device, as well as the date & time of the score.
-//The score depends on how many tiles of your color the final board has, and how quickly you played overall.
-    private void commitResult(int score){
+    //The score depends on how many tiles of your color the final board has, and how well you played overall.
+    private void commitResult(double score){
         int currentScore, place = -1;
         String date = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
         String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -428,12 +426,14 @@ public class BoardActivity extends AppCompatActivity {
         ArrayList<String> dateList = new ArrayList();
         SharedPreferences scores = getSharedPreferences(TOP_TEN_SCORES, MODE_PRIVATE);
 
+        score = fixScore(score);
+
         //Insertion Sort
         if(scores!=null){
             for(int i=0; i<10; i++) {
                 currentScore = scores.getInt(i+" score", 0);
                 if(score>=currentScore && place == -1){
-                    scoreList.add(score);
+                    scoreList.add((int)score);
                     dateList.add(date + ",  \t" + time);
                     place = i;
                 }
@@ -448,23 +448,41 @@ public class BoardActivity extends AppCompatActivity {
             }
         }
         else{ //SharedPreferences == empty, so <score> enters the top ten list, at first place!
-            scoreList.add(score);
+            scoreList.add((int)score);
             dateList.add(date + ", " + time);
             place = 0;
         }
 
-        if(scoreList.isEmpty()){return;}////////////////////////////////////////////////////////////
+        if(scoreList.isEmpty()){return;}
 
         //Commit changes
         SharedPreferences.Editor editor = getSharedPreferences(TOP_TEN_SCORES, MODE_PRIVATE).edit();
         for(int i=0; i<scoreList.size(); i++) {
             if(i>9){ break; }
-            //System.out.println(i+" score: "+ scoreList.get(i)+"  \tdate:"+ dateList.get(i));///////////////////////////////////////////////
             editor.putInt(i+" score", scoreList.get(i));
             editor.putString(i+" date", dateList.get(i));
         }
-        showToast("You made it to top " + (place+1) + "! Well played!");
+        showToast("You made it to top " + (place+1) + "! Well done!", Toast.LENGTH_LONG);
         editor.apply();
+    }
+
+    //<score> is updated every turn, using the following formula:
+    //    score += count[playerColor]*(60-count[Tile.GREEN]);
+    //This formula creates certain minimum and maximum values for the <score>, depending on color.
+    //For example, I calculated that if you have BLACK tiles, in the worst case scenario your score
+    //is 3570, and in the best case scenario its 77620. For WHITE, the interval is [3510, 77560].
+    //So, I choose to scale the score for both colors, using a mutual interval: [0,1000].
+    private double fixScore(double score){
+        int min,max;
+        if(playerColor==Tile.BLACK){
+            min=3570;
+            max=77620;
+        }
+        else{
+            min=3510;
+            max=77560;
+        }
+        return ((score-min)/(max-min))*1000; //Scale the score to the interval [0,1000]
     }
 
     private void chooseColorDialog(){

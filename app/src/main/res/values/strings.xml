@@ -34,8 +34,10 @@
         END OF GAME:\n
         When it is no longer possible for either player to move, the game is over. The tiles are now counted and the player with the majority of his or her color tiles on the board is the winner (a tie is possible).\n
     </string>
-
-    <string name="scores_title">Scores:</string>
+    <string name="clear_history_title">Delete History?</string>
+    <string name="clear_history_text">Do you want to permanently delete all your saved scores?</string>
+    <string name="no_scores">No scores have been saved.</string>
+    <string name="scores_title">Scores</string>
     <string name="scores_text">Not implemented yet</string>
 
     <!-- board_layout -->
