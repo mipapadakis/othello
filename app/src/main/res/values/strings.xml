@@ -16,6 +16,13 @@
     <string name="ai">vs. AI</string>
     <string name="online">Online</string>
     <string name="two_users">2 Users</string>
+    <string name="choose_difficulty">Choose Difficulty:</string>
+    <string-array name="difficulty">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+        <item>Expert</item>
+    </string-array>
 
     <!-- info_layout -->
     <string name="help_title">Game Rules:</string>

@@ -31,18 +31,23 @@ class Tile{
     void setButton(View v){ button = (Button) v; }
     Button getButton(){ return button; }
     void setColor(int color){
-        if(color==WHITE)
-            button.setBackgroundResource(R.drawable.white);
-        if(color==BLACK)
-            button.setBackgroundResource(R.drawable.black);
-        if(color==GREEN)
-            button.setBackgroundResource(R.drawable.green);
+        if(button!=null){
+            if(color==WHITE)
+                button.setBackgroundResource(R.drawable.white);
+            if(color==BLACK)
+                button.setBackgroundResource(R.drawable.black);
+            if(color==GREEN)
+                button.setBackgroundResource(R.drawable.green);
+        }
         this.color = color;
     }
     int getColor(){ return color; }
     boolean isEmpty(){ return color==GREEN; }
     boolean isWhite(){ return color==WHITE; }
     boolean isBlack(){ return color==BLACK; }
+    boolean isEdge(){ return neighbor[0]==null || neighbor[2]==null || neighbor[4]==null || neighbor[6]==null;}
+    boolean isCorner(){ return (neighbor[6]==null && neighbor[0]==null) || (neighbor[0]==null && neighbor[2]==null)
+                            || (neighbor[6]==null && neighbor[4]==null) || (neighbor[4]==null && neighbor[2]==null);}
 
     /*
     public Tile getN(){  return neighbor[0]; }

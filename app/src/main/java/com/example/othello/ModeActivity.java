@@ -1,11 +1,11 @@
 package com.example.othello;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 
 import java.util.ArrayList;
 
@@ -24,16 +24,44 @@ public class ModeActivity extends AppCompatActivity {
         findViewById(R.id.aiBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent startIntent = new Intent(getApplicationContext(),BoardActivity.class);
-                startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.MODE_VS_AI_EASY);
-                startActivity(startIntent);
+                String[] difficulty = getResources().getStringArray(R.array.difficulty);
+                final Intent startIntent = new Intent(getApplicationContext(),BoardActivity.class);
+
+                AlertDialog.Builder mBuilder = new AlertDialog.Builder(ModeActivity.this);
+                mBuilder.setTitle(getString(R.string.choose_difficulty));
+                mBuilder.setSingleChoiceItems(difficulty, -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if(i==0){
+                            startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.EASY_AI);
+                            startActivity(startIntent);
+                            dialogInterface.dismiss();
+                        }
+                        else if(i==1){
+                            startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.MEDIUM_AI);
+                            startActivity(startIntent);
+                            dialogInterface.dismiss();
+                        }
+                        else if(i==2){
+                            startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.HARD_AI);
+                            startActivity(startIntent);
+                            dialogInterface.dismiss();
+                        }
+                        else{
+                            startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.EXPERT_AI);
+                            startActivity(startIntent);
+                            dialogInterface.dismiss();
+                        }
+                    }
+                });
+                AlertDialog mDialog = mBuilder.create();
+                mDialog.show();
             }
         });
 
         findViewById(R.id.onlineBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i("NOTE","onlineBtn");
                 createNoteIntent("PvP Online", "Not implemented yet");
             }
         });
@@ -41,7 +69,6 @@ public class ModeActivity extends AppCompatActivity {
         findViewById(R.id.two_usersBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //createNoteIntent("User vs. User", "Not implemented yet");
                 Intent startIntent = new Intent(getApplicationContext(),BoardActivity.class);
                 startIntent.putExtra(BoardActivity.KEY_MODE, BoardActivity.MODE_TWO_USERS);
                 startActivity(startIntent);
