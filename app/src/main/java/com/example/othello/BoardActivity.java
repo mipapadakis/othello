@@ -610,6 +610,5 @@ public class BoardActivity extends AppCompatActivity {
 }
 
 //TODO: Online Mode
-//TODO: default actions when an alert dialog is closed prematurely
 //TODO: score sharedPreferences separate for each difficulty
 //TODO: Bug - when AI has no legal moves, player gets their turn as normal, BUT toast doesn't show up
