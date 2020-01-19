@@ -16,21 +16,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Random;
 
 public class BoardActivity extends AppCompatActivity {
     public static final String TOP_TEN_SCORES = "top10scores";
-    protected static final int BIG_BONUS = 100;
-    protected static final int SMALL_BONUS = 20;
     protected static final String KEY_MODE = "mode";
     private ImageView nowPlaysIV; //Shows who is currently playing
     private TextView[] countTV; //Shows how many tiles of each color exist on board
     protected int evaluation; //evaluation = #white_tiles - #black_tiles
     protected Toast toast;
     protected Tile[][] board;
-    protected static boolean turnBlack;
+    protected boolean turnBlack;
     protected static int gameMode;
-    protected static boolean AI_Mode;
+    protected static boolean AI_MODE;
 
     //Mode: player vs. AI
     protected static final int EASY_AI =100;
@@ -71,7 +68,7 @@ public class BoardActivity extends AppCompatActivity {
                 gameMode = extras.getInt(KEY_MODE);
             }
         }
-        AI_Mode = gameMode == EASY_AI || gameMode == MEDIUM_AI ||gameMode == HARD_AI || gameMode == EXPERT_AI;
+        AI_MODE = gameMode == EASY_AI || gameMode == MEDIUM_AI ||gameMode == HARD_AI || gameMode == EXPERT_AI;
 
         //Initialize the TextViews that show how many tiles of each color exist on board
         countTV = new TextView[2];
@@ -99,7 +96,7 @@ public class BoardActivity extends AppCompatActivity {
         updateCounts();
         addClickListeners();
 
-        if(AI_Mode)
+        if(AI_MODE)
             chooseColorDialog();
     }
 
@@ -113,8 +110,6 @@ public class BoardActivity extends AppCompatActivity {
     protected boolean playsBlack(){return turnBlack;}
     protected boolean playsWhite(){return !turnBlack;}
     protected boolean playsPlayer(){return (playsBlack() && playerColor==Tile.BLACK) || (playsWhite() && playerColor==Tile.WHITE);}
-    //protected boolean playsAI(){return !playsPlayer();}
-    //private boolean isCorner(int i, int j){return (i==0&&j==0)||(i==0&&j==7)||(i==7&&j==0)||(i==7&&j==7);}
     private int getCurrentColor(){
         if(playsBlack())
             return Tile.BLACK;
@@ -142,10 +137,10 @@ public class BoardActivity extends AppCompatActivity {
     protected void playAI(){
         if(playsPlayer())
             return;
-        if(unableToMove(board)) {
+        /*if(unableToMove(board)) {
             gameOverDialog();
             return;
-        }
+        }*/
 
         //Insert the code into a timer in order to simulate the "thinking time" of the AI
         new CountDownTimer(800, 1) {
@@ -153,13 +148,20 @@ public class BoardActivity extends AppCompatActivity {
             public void onTick(long millisUntilFinished) {}
             public void onFinish() {
                 if (gameMode == EASY_AI) {
-                    playEasyAI(board, getAIColor(), true);
+                    AI.play(board, getAIColor(), 0);
                 } else if (gameMode == MEDIUM_AI) {
-                    playMediumAI(board, getAIColor(), true);
+                    AI.play(board, getAIColor(), 1);
                 } else if (gameMode == HARD_AI){
-                    playHardAI(board, getAIColor(), true);
+                    AI.play(board, getAIColor(), 2);
                 } else if (gameMode == EXPERT_AI){
-                    playExpertAI(board, getAIColor(), true);
+                    AI.play(board, getAIColor(), 50);
+                }
+                if(AI_MODE){
+                    nextTurn();
+                    updateCounts();
+                    evaluation = evaluateBoard(board);
+                    if (unableToMove(board))
+                        gameOverDialog();
                 }
             }
         }.start();
@@ -175,7 +177,7 @@ public class BoardActivity extends AppCompatActivity {
         else
             nowPlaysIV.setImageResource(R.drawable.white);
 
-        if(!playsPlayer())
+        if(AI_MODE && !playsPlayer())
             playAI();
     }
     // int[0] = int[Tile.BLACK] = countTV of black tiles
@@ -263,371 +265,20 @@ public class BoardActivity extends AppCompatActivity {
                     return true;
                 }
                 //Black has no available move. White plays again.
-                showToast(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
+                showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
             }
             else{
                 if(Tile.ableToMove(board, Tile.BLACK) == Tile.CANT_PLAY ){
-                    showToast(getResources().getString(R.string.no_moves));
+                    showToastLong(getResources().getString(R.string.no_moves));
                     return true;
                 }
                 //White has no available move. Black plays again.
-                showToast(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
+                showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
             }
             nextTurn();
             return false;
         }
         return true;
-    }
-
-    //Suppose that we placed a <color> tile in the position (i,j) of board.
-    //Return a positive integer (variable <score>), that evaluates how good that move is.
-    //Return -1 if the move is not allowed.
-    int evaluateMove(Tile[][] board, int i, int j, int color){
-        if(!board[i][j].isEmpty())
-            return -1; //Can't place a tile on a non-Green position
-        Tile examineTile = board[i][j];
-        int score = 0;
-
-        //Check if a tile can be played on this i,j position:
-        for (int direction = 0; direction < 8; direction++) {
-            if(Tile.flipAllowed(board[i][j], color, direction)){
-                do{
-                    examineTile=examineTile.neighbor[direction];
-                    score++;
-                    if(examineTile.isEdge()){
-                        score += 2; //Some extra points for any edge tiles being flipped
-                    }
-                }while(examineTile.neighbor[direction].getColor()!=color);
-                examineTile=board[i][j];
-            }
-        }
-
-        //Is it an invalid move?
-        if(score<=0)
-            return -1;
-
-        ////////////////////////////////Calculate possible bonuses//////////////////////////////////
-        if(board[i][j].isCorner()) {
-            return score + BIG_BONUS;
-        }
-
-        //Edges
-        if(i==0 || i==7){
-            if(board[i][j].neighbor[2].getColor()==Tile.GREEN && board[i][j].neighbor[6].getColor()==Tile.GREEN){ //Check if East and West are both green
-                score = score + SMALL_BONUS;
-            }
-        }
-        else if(j==0 || j==7){
-            if(board[i][j].neighbor[0].getColor()==Tile.GREEN && board[i][j].neighbor[4].getColor()==Tile.GREEN){ //Check if North and South are both green
-                score = score + SMALL_BONUS;
-            }
-        }///////////////////////////////////////////////////////////////////////////////////////////
-        return score;
-    }
-
-    //Make an EasyAI move and return its evaluation.
-    private int playEasyAI(Tile[][] board, int color, boolean makeTheMove){
-        ArrayList<int[]> availableMoves = new ArrayList<>(); //Save in this list all the available moves
-        int[] item; // item = {i, j, <evaluation of move>}
-
-        //Find all available moves:
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                item = new int[]{i,j,evaluateMove(board, i, j, color)};
-                if(item[2] != -1){ //Flipping is valid in position (i,j)
-                    availableMoves.add(item);
-                }
-            }
-        }
-
-        if(availableMoves.size()==0)
-            return -1;
-
-        item = availableMoves.get(0);
-        //Find the move with max evaluation and store it in the <item> variable:
-        for(int[] it: availableMoves){
-            if(it[2]>item[2])
-                item=it;
-        }
-
-        //If there are more than 1 moves that are equal to the maximum, pick one at random:
-        ArrayList<int[]> max = new ArrayList<>();
-        for(int[] it: availableMoves){
-            if(it[2]==item[2])
-                max.add(it); //Save in list <max> all the moves that have equal evaluation with the max evaluation
-        }
-        item = max.get( (new Random()).nextInt(max.size()) ); //Find random integer in [0, availableMoves.size)
-
-        if(makeTheMove){
-            //Make the move:
-            if(Tile.flipTiles(board[item[0]][item[1]], color)){
-                nextTurn();
-                updateCounts();
-                evaluation = evaluateBoard(board);
-                if (unableToMove(board))
-                    gameOverDialog();
-            }else
-                showToast(getResources().getString(R.string.invalid));
-        }
-        return item[2];
-    }
-
-    private int playMediumAI(Tile[][] board, int color, boolean makeTheMove){
-        ArrayList<int[]> availableMoves = new ArrayList<>(); //Save in this list all the available moves
-        Tile[][] tempBoard = new Tile[8][8];
-        int[] item; // item = {i, j, <evaluation of move>}
-
-        //Find all available moves:
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                item = new int[]{i,j,evaluateMove(board, i, j, color)};
-                if(item[2] != -1){ //Flipping is valid in position (i,j)
-                    availableMoves.add(item);
-                }
-            }
-        }
-
-        if(availableMoves.size()==0)
-            return -1;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //Create tempBoard:
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                tempBoard[i][j] = new Tile();
-            }
-        }
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                tempBoard[i][j].setNeighbors(tempBoard, i, j);
-            }
-        }
-        for(int m=0; m<availableMoves.size(); m++){
-            //tempBoard = copy of board
-            for(int i=0; i<8; i++){
-                for(int j=0; j<8; j++){
-                    tempBoard[i][j].setColor(board[i][j].getColor());
-                }
-            }
-
-            //availableMoves.get(m)[0] = i
-            //availableMoves.get(m)[1] = j
-            //availableMoves.get(m)[2] = evaluation
-            Tile.flipTiles(tempBoard[availableMoves.get(m)[0]][availableMoves.get(m)[1]], color); //make the <m> move on the tempBoard.
-
-            //Calculate evaluation of the best move on tempBoard for the player (assume its a level "Easy" move):
-            if(color==Tile.BLACK){
-                if(Tile.ableToMove(tempBoard, Tile.WHITE) == Tile.CANT_PLAY)
-                    availableMoves.get(m)[2] += BIG_BONUS; //This AI's move results in the player's inability to play!
-                availableMoves.get(m)[2] -= playEasyAI(tempBoard, Tile.WHITE, false); //Subtract it from our evaluation of <m>
-            }
-            else if(color==Tile.WHITE){
-                if(Tile.ableToMove(tempBoard, Tile.BLACK) == Tile.CANT_PLAY)
-                    availableMoves.get(m)[2] += BIG_BONUS; //This AI's move results in the player's inability to play!
-                availableMoves.get(m)[2] -= playEasyAI(tempBoard, Tile.BLACK, false); //Subtract it from our evaluation of <m>
-            }
-
-        }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        item = availableMoves.get(0);
-        //Find the move with max evaluation and store it in the <item> variable:
-        for(int[] it: availableMoves){
-            if(it[2]>item[2])
-                item=it;
-        }
-
-        //If there are more than 1 moves that are equal to the maximum, pick one at random:
-        ArrayList<int[]> max = new ArrayList<>();
-        for(int[] it: availableMoves){
-            if(it[2]==item[2])
-                max.add(it); //Save in list <max> all the moves that have equal evaluation with the max evaluation
-        }
-        item = max.get( (new Random()).nextInt(max.size()) ); //Find random integer in [0, availableMoves.size)
-
-        if(makeTheMove){
-            //Make the move:
-            if(Tile.flipTiles(board[item[0]][item[1]], color)){
-                nextTurn();
-                updateCounts();
-                evaluation = evaluateBoard(board);
-                if (unableToMove(board))
-                    gameOverDialog();
-            }else
-                showToast(getResources().getString(R.string.invalid));
-        }
-        return item[2];
-    }
-
-    private int playHardAI(Tile[][] board, int color, boolean makeTheMove){
-        ArrayList<int[]> availableMoves = new ArrayList<>(); //Save in this list all the available moves
-        Tile[][] tempBoard = new Tile[8][8];
-        int[] item; // item = {i, j, <evaluation of move>}
-
-        //Find all available moves:
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                item = new int[]{i,j,evaluateMove(board, i, j, color)};
-                if(item[2] != -1){ //Flipping is valid in position (i,j)
-                    availableMoves.add(item);
-                }
-            }
-        }
-
-        if(availableMoves.size()==0)
-            return -1;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //Create tempBoard:
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                tempBoard[i][j] = new Tile();
-            }
-        }
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                tempBoard[i][j].setNeighbors(tempBoard, i, j);
-            }
-        }
-        for(int m=0; m<availableMoves.size(); m++){
-            //tempBoard = copy of board
-            for(int i=0; i<8; i++){
-                for(int j=0; j<8; j++){
-                    tempBoard[i][j].setColor(board[i][j].getColor());
-                }
-            }
-
-            //availableMoves.get(m)[0] = i
-            //availableMoves.get(m)[1] = j
-            //availableMoves.get(m)[2] = evaluation
-            Tile.flipTiles(tempBoard[availableMoves.get(m)[0]][availableMoves.get(m)[1]], color); //make the <m> move on the tempBoard.
-
-            //Calculate evaluation of the best move on tempBoard for the player (assume its a level "Easy" move):
-            if(color==Tile.BLACK){
-                if(Tile.ableToMove(tempBoard, Tile.WHITE) == Tile.CANT_PLAY)
-                    availableMoves.get(m)[2] += BIG_BONUS; //This AI's move results in the player's inability to play!
-                availableMoves.get(m)[2] -= playMediumAI(tempBoard, Tile.WHITE, false); //Subtract it from our evaluation of <m>
-            }
-            else if(color==Tile.WHITE){
-                if(Tile.ableToMove(tempBoard, Tile.BLACK) == Tile.CANT_PLAY)
-                    availableMoves.get(m)[2] += BIG_BONUS; //This AI's move results in the player's inability to play!
-                availableMoves.get(m)[2] -= playMediumAI(tempBoard, Tile.BLACK, false); //Subtract it from our evaluation of <m>
-            }
-
-        }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        item = availableMoves.get(0);
-        //Find the move with max evaluation and store it in the <item> variable:
-        for(int[] it: availableMoves){
-            if(it[2]>item[2])
-                item=it;
-        }
-
-        //If there are more than 1 moves that are equal to the maximum, pick one at random:
-        ArrayList<int[]> max = new ArrayList<>();
-        for(int[] it: availableMoves){
-            if(it[2]==item[2])
-                max.add(it); //Save in list <max> all the moves that have equal evaluation with the max evaluation
-        }
-        item = max.get( (new Random()).nextInt(max.size()) ); //Find random integer in [0, availableMoves.size)
-
-        if(makeTheMove){
-            //Make the move:
-            if(Tile.flipTiles(board[item[0]][item[1]], color)){
-                nextTurn();
-                updateCounts();
-                evaluation = evaluateBoard(board);
-                if (unableToMove(board))
-                    gameOverDialog();
-            }else
-                showToast(getResources().getString(R.string.invalid));
-        }
-        return item[2];
-    }
-
-    private int playExpertAI(Tile[][] board, int color, boolean makeTheMove){
-        ArrayList<int[]> availableMoves = new ArrayList<>(); //Save in this list all the available moves
-        Tile[][] tempBoard = new Tile[8][8];
-        int[] item; // item = {i, j, <evaluation of move>}
-
-        //Find all available moves:
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                item = new int[]{i,j,evaluateMove(board, i, j, color)};
-                if(item[2] != -1){ //Flipping is valid in position (i,j)
-                    availableMoves.add(item);
-                }
-            }
-        }
-
-        if(availableMoves.size()==0)
-            return -1;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        //Create tempBoard:
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                tempBoard[i][j] = new Tile();
-            }
-        }
-        for(int i=0; i<8; i++){
-            for(int j=0; j<8; j++){
-                tempBoard[i][j].setNeighbors(tempBoard, i, j);
-            }
-        }
-        for(int m=0; m<availableMoves.size(); m++){
-            //tempBoard = copy of board
-            for(int i=0; i<8; i++){
-                for(int j=0; j<8; j++){
-                    tempBoard[i][j].setColor(board[i][j].getColor());
-                }
-            }
-
-            //availableMoves.get(m)[0] = i
-            //availableMoves.get(m)[1] = j
-            //availableMoves.get(m)[2] = evaluation
-            Tile.flipTiles(tempBoard[availableMoves.get(m)[0]][availableMoves.get(m)[1]], color); //make the <m> move on the tempBoard.
-
-            //Calculate evaluation of the best move on tempBoard for the player (assume its a level "Easy" move):
-            if(color==Tile.BLACK){
-                if(Tile.ableToMove(tempBoard, Tile.WHITE) == Tile.CANT_PLAY)
-                    availableMoves.get(m)[2] += BIG_BONUS; //This AI's move results in the player's inability to play!
-                availableMoves.get(m)[2] -= playHardAI(tempBoard, Tile.WHITE, false); //Subtract it from our evaluation of <m>
-            }
-            else if(color==Tile.WHITE){
-                if(Tile.ableToMove(tempBoard, Tile.BLACK) == Tile.CANT_PLAY)
-                    availableMoves.get(m)[2] += BIG_BONUS; //This AI's move results in the player's inability to play!
-                availableMoves.get(m)[2] -= playHardAI(tempBoard, Tile.BLACK, false); //Subtract it from our evaluation of <m>
-            }
-
-        }///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        item = availableMoves.get(0);
-        //Find the move with max evaluation and store it in the <item> variable:
-        for(int[] it: availableMoves){
-            if(it[2]>item[2])
-                item=it;
-        }
-
-        //If there are more than 1 moves that are equal to the maximum, pick one at random:
-        ArrayList<int[]> max = new ArrayList<>();
-        for(int[] it: availableMoves){
-            if(it[2]==item[2])
-                max.add(it); //Save in list <max> all the moves that have equal evaluation with the max evaluation
-        }
-        item = max.get( (new Random()).nextInt(max.size()) ); //Find random integer in [0, availableMoves.size)
-
-        if(makeTheMove){
-            //Make the move:
-            if(Tile.flipTiles(board[item[0]][item[1]], color)){
-                nextTurn();
-                updateCounts();
-                evaluation = evaluateBoard(board);
-                if (unableToMove(board))
-                    gameOverDialog();
-            }else
-                showToast(getResources().getString(R.string.invalid));
-        }
-        return item[2];
     }
 
     protected void showToast(String str){
@@ -636,10 +287,10 @@ public class BoardActivity extends AppCompatActivity {
         toast = Toast.makeText(BoardActivity.this, str, Toast.LENGTH_SHORT);
         toast.show();
     }
-    protected void showToast(String str, int length){
+    protected void showToastLong(String str){
         if(toast != null)
             toast.cancel();
-        toast = Toast.makeText(BoardActivity.this, str, length);
+        toast = Toast.makeText(BoardActivity.this, str, Toast.LENGTH_LONG);
         toast.show();
     }
 
@@ -659,10 +310,10 @@ public class BoardActivity extends AppCompatActivity {
         else{
             if( evaluation>0 && playerColor==Tile.WHITE || evaluation<0 && playerColor==Tile.BLACK){
                 msg = getResources().getString(R.string.you_won) + " Score: "+(int) fixScore(score);
-                commitScore(score);
             }
             else
                 msg = getResources().getString(R.string.you_lost);
+            commitScore(score);
         }
 
         new AlertDialog.Builder(this)
@@ -727,7 +378,7 @@ public class BoardActivity extends AppCompatActivity {
             editor.putInt(i+" score", scoreList.get(i));
             editor.putString(i+" date", dateList.get(i));
         }
-        showToast("You made it to top " + (place+1) + "! Well done!", Toast.LENGTH_LONG);
+        showToastLong("You made it to top " + (place+1) + "! Well done!");
         editor.apply();
     }
 
@@ -754,20 +405,21 @@ public class BoardActivity extends AppCompatActivity {
         String title = getResources().getString(R.string.choose_color), msg = getResources().getString(R.string.choose_color_txt);
 
         new AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage(msg)
-            .setNegativeButton(getResources().getString(R.string.white), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    playerColor = Tile.WHITE;
-                    playAI();
-                }
-            })
-            .setPositiveButton(getResources().getString(R.string.black), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    playerColor = Tile.BLACK;
-                }
-            }).create().show();
+                .setCancelable(false)
+                .setTitle(title)
+                .setMessage(msg)
+                .setNegativeButton(getResources().getString(R.string.white), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        playerColor = Tile.WHITE;
+                        playAI();
+                    }
+                })
+                .setPositiveButton(getResources().getString(R.string.black), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        playerColor = Tile.BLACK;
+                    }
+                }).create().show();
     }
 
     /*
@@ -805,7 +457,7 @@ public class BoardActivity extends AppCompatActivity {
         board[4][4].setColor(Tile.WHITE);
         updateCounts();
 
-        if(AI_Mode)
+        if(AI_MODE)
             chooseColorDialog();
     }
 
@@ -956,3 +608,8 @@ public class BoardActivity extends AppCompatActivity {
         button[7][7] = findViewById(R.id.tile77);
     }*/
 }
+
+//TODO: Online Mode
+//TODO: default actions when an alert dialog is closed prematurely
+//TODO: score sharedPreferences separate for each difficulty
+//TODO: Bug - when AI has no legal moves, player gets their turn as normal, BUT toast doesn't show up

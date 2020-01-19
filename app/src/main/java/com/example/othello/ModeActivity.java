@@ -28,6 +28,7 @@ public class ModeActivity extends AppCompatActivity {
                 final Intent startIntent = new Intent(getApplicationContext(),BoardActivity.class);
 
                 AlertDialog.Builder mBuilder = new AlertDialog.Builder(ModeActivity.this);
+                mBuilder.setCancelable(false);
                 mBuilder.setTitle(getString(R.string.choose_difficulty));
                 mBuilder.setSingleChoiceItems(difficulty, -1, new DialogInterface.OnClickListener() {
                     @Override

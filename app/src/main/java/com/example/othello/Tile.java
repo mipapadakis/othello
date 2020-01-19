@@ -148,7 +148,7 @@ class Tile{
             neighbor[7]=board[row-1][col-1];
     }
 
-    //Return CANT_PLAY if the player with <color> tiles has no valid move to play.
+    //Return CANT_PLAY if the player with <color> tiles has no valid move to calculateMove.
     //Return BOARD_FULL if the board is full.
     //Return CAN_PLAY otherwise
     static int ableToMove(Tile[][] board, int color){
