@@ -8,11 +8,11 @@ class AI {
     private static final int SMALL_BONUS = 30;
     private static int difficulty;
 
-    static int play(Tile[][] board, int color, int difficulty){
+    static void play(Tile[][] board, int color, int difficulty){
         AI.difficulty = difficulty;
         if(difficulty<0)
             AI.difficulty=0;
-        return calculateMove(board, color, true);
+        calculateMove(board, color, true);
     }
 
     //Suppose that we placed a <color> tile in the position (i,j) of board.

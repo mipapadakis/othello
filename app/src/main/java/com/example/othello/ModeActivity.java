@@ -17,6 +17,9 @@ public class ModeActivity extends AppCompatActivity {
         setContentView(R.layout.choose_mode_layout);
         setTitle(getString(R.string.choose_mode)); //ActionBar title
         initializeModeButtons();
+
+        //Online PvP not implemented yet => don't show the button
+        findViewById(R.id.onlineBtn).setVisibility(View.GONE);///////////////////////////////////
     }
 
 

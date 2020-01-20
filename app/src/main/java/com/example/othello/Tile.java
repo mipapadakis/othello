@@ -7,9 +7,9 @@ class Tile{
     static final int BLACK = 0; //Don't change the value!
     static final int WHITE = 1; //Don't change the value!
     static final int GREEN = 2; //Don't change the value!
-    static final int CANT_PLAY = 100;
-    static final int CAN_PLAY = 101;
-    private static final int BOARD_FULL = 102;
+    private static final int CAN_PLAY = 100;
+    static final int CANT_PLAY = 101;
+    static final int BOARD_FULL = 102;
     private Button button;
     private int color;
     Tile[] neighbor; //neighbor[0] is the tile above this board. Move in a clockwise rotation to find the rest (explained in detail in method setNeighbors).
@@ -20,12 +20,6 @@ class Tile{
         neighbor = new Tile[8];
         button=null;
         color=GREEN;
-    }
-
-    Tile( Tile t){
-        neighbor = new Tile[8];
-        setButton(t.getButton());
-        setColor(t.getColor());
     }
 
     void setButton(View v){ button = (Button) v; }
@@ -48,50 +42,6 @@ class Tile{
     boolean isEdge(){ return neighbor[0]==null || neighbor[2]==null || neighbor[4]==null || neighbor[6]==null;}
     boolean isCorner(){ return (neighbor[6]==null && neighbor[0]==null) || (neighbor[0]==null && neighbor[2]==null)
                             || (neighbor[6]==null && neighbor[4]==null) || (neighbor[4]==null && neighbor[2]==null);}
-
-    /*
-    public Tile getN(){  return neighbor[0]; }
-    public Tile getNE(){ return neighbor[1]; }
-    public Tile getE(){  return neighbor[2]; }
-    public Tile getSE(){ return neighbor[3]; }
-    public Tile getS(){  return neighbor[4]; }
-    public Tile getSW(){ return neighbor[5]; }
-    public Tile getW(){  return neighbor[6]; }
-    public Tile getNW(){ return neighbor[7]; }
-
-
-    public void setColorN(int color){
-        if(neighbor[0]!=null)
-            neighbor[0].setColor(color);
-    }
-    public void setColorNE(int color){
-        if(neighbor[1]!=null)
-            neighbor[1].setColor(color);
-    }
-    public void setColorE(int color){
-        if(neighbor[2]!=null)
-            neighbor[2].setColor(color);
-    }
-    public void setColorSE(int color){
-        if(neighbor[3]!=null)
-            neighbor[3].setColor(color);
-    }
-    public void setColorS(int color){
-        if(neighbor[4]!=null)
-            neighbor[4].setColor(color);
-    }
-    public void setColorSW(int color){
-        if(neighbor[5]!=null)
-            neighbor[5].setColor(color);
-    }
-    public void setColorW(int color){
-        if(neighbor[6]!=null)
-            neighbor[6].setColor(color);
-    }
-    public void setColorNW(int color){
-        if(neighbor[7]!=null)
-            neighbor[7].setColor(color);
-    }*/
 
     void setNeighbors(Tile[][] board, int row, int col){
 

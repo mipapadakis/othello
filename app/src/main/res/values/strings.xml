@@ -41,11 +41,6 @@
         END OF GAME:\n
         When it is no longer possible for either player to move, the game is over. The tiles are now counted and the player with the majority of his or her color tiles on the board is the winner (a tie is possible).\n
     </string>
-    <string name="clear_history_title">Delete History?</string>
-    <string name="clear_history_text">Do you want to permanently delete all your saved scores?</string>
-    <string name="no_scores">No scores have been saved.</string>
-    <string name="scores_title">Scores</string>
-    <string name="scores_text">Not implemented yet</string>
 
     <!-- board_layout -->
     <string name="tile">Tile</string>
@@ -53,7 +48,7 @@
     <string name="invalid">Invalid Move!</string>
     <string name="count">\ %d\ \ </string>
     <string name="cant_play">%s has no available move. %s plays again.</string>
-    <string name="no_moves">Neither of the players have legal moves.\nGame Over!</string>
+    <string name="no_moves">Neither of the players have legal moves.</string>
     <string name="game_over">Game Over!</string>
     <string name="win_white">White wins.</string>
     <string name="win_black">Black wins.</string>
@@ -67,7 +62,17 @@
     <string name="error">Error!</string>
     <string name="error_txt">An error has occurred! Play again or go to Main Menu?</string>
 
-</resources>
+    <!-- scoreActivity -->
+    <string name="title_activity_score">Scores</string>
+    <string name="tab_text_1">Easy</string>
+    <string name="tab_text_2">Medium</string>
+    <string name="tab_text_3">Hard</string>
+    <string name="tab_text_4">Expert</string>
+    <string name="clear_history_title">Delete History?</string>
+    <string name="clear_history_text">Do you want to permanently delete all your saved scores for this difficulty?</string>
+    <string name="no_scores">No scores have been saved.</string>
+    <string name="scores_title">Scores</string>
 
+</resources>
     <!-- TODO: add time counters for both players, and a time limit option. -->
     <!-- TODO: save games (vs AI & 2 users) -->

@@ -18,11 +18,13 @@ import java.util.Date;
 import java.util.Locale;
 
 public class BoardActivity extends AppCompatActivity {
-    public static final String TOP_TEN_SCORES = "top10scores";
+    public static final String TOP_TEN_EASY = "10Easy";
+    public static final String TOP_TEN_MEDIUM = "10Medium";
+    public static final String TOP_TEN_HARD = "10Hard";
+    public static final String TOP_TEN_EXPERT = "10Expert";
     protected static final String KEY_MODE = "mode";
     private ImageView nowPlaysIV; //Shows who is currently playing
     private TextView[] countTV; //Shows how many tiles of each color exist on board
-    protected int evaluation; //evaluation = #white_tiles - #black_tiles
     protected Toast toast;
     protected Tile[][] board;
     protected boolean turnBlack;
@@ -30,10 +32,10 @@ public class BoardActivity extends AppCompatActivity {
     protected static boolean AI_MODE;
 
     //Mode: player vs. AI
-    protected static final int EASY_AI =100;
-    protected static final int MEDIUM_AI =110;
-    protected static final int HARD_AI =120;
-    protected static final int EXPERT_AI =130;
+    protected static final int EASY_AI = 0;
+    protected static final int MEDIUM_AI = 1;
+    protected static final int HARD_AI = 2;
+    protected static final int EXPERT_AI = 5; //The higher number, the more difficult
     protected static int playerColor;
     private double score;
 
@@ -49,7 +51,6 @@ public class BoardActivity extends AppCompatActivity {
         setContentView(R.layout.board_layout);
         if(getSupportActionBar()!=null)
             getSupportActionBar().hide(); //Hide ActionBar
-        evaluation=0;
         turnBlack = true; //First turn plays black
         nowPlaysIV = findViewById(R.id.nowPlaysIV);
 
@@ -101,9 +102,7 @@ public class BoardActivity extends AppCompatActivity {
     }
 
     protected void onPause() {
-        if(toast!=null){
-            toast.cancel();
-        }
+        if(toast!=null){ toast.cancel(); }
         super.onPause();
     }
 
@@ -123,10 +122,15 @@ public class BoardActivity extends AppCompatActivity {
         else
             return Tile.WHITE;
     }
-    private int evaluateBoard(Tile[][] board){
+    private int getWinner(){
         int[] count = countTiles(board);
-        return count[Tile.WHITE] - count[Tile.BLACK];
+        if(count[Tile.WHITE]>count[Tile.BLACK])
+            return Tile.WHITE;
+        if(count[Tile.WHITE]<count[Tile.BLACK])
+            return Tile.BLACK;
+        return  Tile.GREEN;
     }
+
     //Calculate and show many tiles of each color exist on the board.
     private void updateCounts(){
         int[] c = countTiles(board);
@@ -135,12 +139,16 @@ public class BoardActivity extends AppCompatActivity {
     }
 
     protected void playAI(){
-        if(playsPlayer())
-            return;
-        /*if(unableToMove(board)) {
-            gameOverDialog();
-            return;
-        }*/
+        if(Tile.ableToMove(board, getAIColor())==Tile.CANT_PLAY){
+            if(getCurrentColor()==Tile.BLACK) {
+                if(Tile.ableToMove(board, Tile.WHITE) == Tile.CANT_PLAY){ showToast(getResources().getString(R.string.no_moves)); }
+                showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
+            }
+            else{
+                if(Tile.ableToMove(board, Tile.BLACK) == Tile.CANT_PLAY ){ showToastLong(getResources().getString(R.string.no_moves)); }
+                showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.white), getResources().getString(R.string.black)));
+            }
+        }
 
         //Insert the code into a timer in order to simulate the "thinking time" of the AI
         new CountDownTimer(800, 1) {
@@ -148,20 +156,17 @@ public class BoardActivity extends AppCompatActivity {
             public void onTick(long millisUntilFinished) {}
             public void onFinish() {
                 if (gameMode == EASY_AI) {
-                    AI.play(board, getAIColor(), 0);
+                    AI.play(board, getAIColor(), EASY_AI);
                 } else if (gameMode == MEDIUM_AI) {
-                    AI.play(board, getAIColor(), 1);
+                    AI.play(board, getAIColor(), MEDIUM_AI);
                 } else if (gameMode == HARD_AI){
-                    AI.play(board, getAIColor(), 2);
+                    AI.play(board, getAIColor(), HARD_AI);
                 } else if (gameMode == EXPERT_AI){
-                    AI.play(board, getAIColor(), 50);
+                    AI.play(board, getAIColor(), EXPERT_AI);
                 }
                 if(AI_MODE){
                     nextTurn();
-                    updateCounts();
-                    evaluation = evaluateBoard(board);
-                    if (unableToMove(board))
-                        gameOverDialog();
+                    checkAbilityToMove();
                 }
             }
         }.start();
@@ -170,6 +175,7 @@ public class BoardActivity extends AppCompatActivity {
     private void nextTurn(){
         int[] count = countTiles(board);
         score += count[playerColor]*(60-count[Tile.GREEN]);
+        updateCounts();
 
         turnBlack=!turnBlack;
         if(playsBlack())
@@ -205,64 +211,57 @@ public class BoardActivity extends AppCompatActivity {
                     tile.getButton().setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                        boolean valid;
-                        if (playsBlack())
-                            valid = Tile.flipTiles(tile, Tile.BLACK);
-                        else
-                            valid = Tile.flipTiles(tile, Tile.WHITE);
+                            boolean valid;
+                            if(toast!=null){ toast.cancel(); }
 
-                        if (valid) {
-                            nextTurn();
-                            updateCounts();
-                            evaluation = evaluateBoard(board);
-                            //showToast("evaluation = "+evaluation);
-                            if(unableToMove(board))
-                                gameOverDialog();
+                            if (playsBlack())
+                                valid = Tile.flipTiles(tile, Tile.BLACK);
+                            else
+                                valid = Tile.flipTiles(tile, Tile.WHITE);
 
-                        } else
-                            showToast(getResources().getString(R.string.invalid));
+                            if (valid) {
+                                nextTurn();
+                                checkAbilityToMove();
+                            } else
+                                showToast(getResources().getString(R.string.invalid));
                         }
                     });
                 }
-                else if(gameMode==MODE_ONLINE){
-                    showToast("Online PvP not Implemented yet");
-                }
-                else{
+                else if(AI_MODE){
                     tile.getButton().setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                        boolean valid = false;
-                        if (playsPlayer())
-                            valid = Tile.flipTiles(tile, getPlayerColor());
+                            boolean valid;
+                            if(toast!=null){ toast.cancel(); }
 
-                        if (valid) {
-                            nextTurn();
-                            updateCounts();
-                            evaluation = evaluateBoard(board);
+                            if (playsPlayer())
+                                valid = Tile.flipTiles(tile, getPlayerColor());
+                            else
+                                return;
 
-                        } else
-                            showToast(getResources().getString(R.string.invalid));
+                            if (valid)
+                                nextTurn();
+                            else
+                                showToast(getResources().getString(R.string.invalid));
                         }
                     });
+                }
+                else{
+                    showToast("Not implemented yet");
                 }
             }
         }
     }
 
-    private boolean unableToMove(Tile[][] board){
+    private void checkAbilityToMove(){
         int ableToMove = Tile.ableToMove(board, getCurrentColor());
 
-        if(ableToMove==Tile.CAN_PLAY) {
-            return false;
-        }
+        if(ableToMove==Tile.BOARD_FULL){ gameOverDialog(Tile.BOARD_FULL); }
         else if(ableToMove==Tile.CANT_PLAY){
-            if(countTiles(board)[Tile.GREEN]==0){
-                return true;
-            }
             if(getCurrentColor()==Tile.BLACK) {
                 if(Tile.ableToMove(board, Tile.WHITE) == Tile.CANT_PLAY){
                     showToast(getResources().getString(R.string.no_moves));
-                    return true;
+                    gameOverDialog(Tile.CANT_PLAY);
                 }
                 //Black has no available move. White plays again.
                 showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
@@ -270,15 +269,13 @@ public class BoardActivity extends AppCompatActivity {
             else{
                 if(Tile.ableToMove(board, Tile.BLACK) == Tile.CANT_PLAY ){
                     showToastLong(getResources().getString(R.string.no_moves));
-                    return true;
+                    gameOverDialog(Tile.CANT_PLAY);
                 }
                 //White has no available move. Black plays again.
-                showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
+                showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.white), getResources().getString(R.string.black)));
             }
             nextTurn();
-            return false;
         }
-        return true;
     }
 
     protected void showToast(String str){
@@ -294,25 +291,29 @@ public class BoardActivity extends AppCompatActivity {
         toast.show();
     }
 
-    private void gameOverDialog(){
-        String title = getResources().getString(R.string.game_over), msg;
-        if(evaluation==0) {
-            msg = getResources().getString(R.string.tie) + " Score: "+(int) fixScore(score);
+    private void gameOverDialog(int why){
+        String title = getResources().getString(R.string.game_over), msg, reason = "";
+        int winner = getWinner();
+
+        if(why==Tile.CANT_PLAY)
+            reason = getResources().getString(R.string.no_moves)+" ";
+
+        if(winner==Tile.GREEN) { //TIE
+            msg = getResources().getString(R.string.tie) + " " + reason + "\nScore: "+(int) fixScore(score);
             if(gameMode!=MODE_TWO_USERS)
                 commitScore(score);
         }
         else if(gameMode == MODE_TWO_USERS){
-            if( evaluation>0 )
-                msg = getResources().getString(R.string.win_white);
+            if( winner == Tile.WHITE )
+                msg = reason + getResources().getString(R.string.win_white);
             else
-                msg = getResources().getString(R.string.win_black);
+                msg = reason + getResources().getString(R.string.win_black);
         }
         else{
-            if( evaluation>0 && playerColor==Tile.WHITE || evaluation<0 && playerColor==Tile.BLACK){
-                msg = getResources().getString(R.string.you_won) + " Score: "+(int) fixScore(score);
-            }
+            if( winner == playerColor )
+                msg = getResources().getString(R.string.you_won) + " " + reason + "\nScore: "+(int) fixScore(score);
             else
-                msg = getResources().getString(R.string.you_lost);
+                msg = getResources().getString(R.string.you_lost) + " " + reason + "\nScore: "+(int) fixScore(score);
             commitScore(score);
         }
 
@@ -330,56 +331,6 @@ public class BoardActivity extends AppCompatActivity {
                     gameReset();
                 }
             }).create().show();
-    }
-
-    //Top ten scores will be stored locally on device, as well as the date & time of the score.
-    //The score depends on how many tiles of your color the final board has, and how well you played overall.
-    private void commitScore(double score){
-        int currentScore, place = -1;
-        String date = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
-        String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
-        ArrayList<Integer> scoreList = new ArrayList();
-        ArrayList<String> dateList = new ArrayList();
-        SharedPreferences scores = getSharedPreferences(TOP_TEN_SCORES, MODE_PRIVATE);
-
-        score = fixScore(score);
-
-        //Insertion Sort
-        if(scores!=null){
-            for(int i=0; i<10; i++) {
-                currentScore = scores.getInt(i+" score", 0);
-                if(score>=currentScore && place == -1){
-                    scoreList.add((int)score);
-                    dateList.add(date + ",  \t" + time);
-                    place = i;
-                }
-                if(currentScore>0){
-                    scoreList.add(currentScore);
-                    dateList.add(scores.getString(i+" date", " "));
-                }
-            }
-
-            if(place==-1){ // <score> will NOT enter the top ten scores => nothing changes
-                return;
-            }
-        }
-        else{ //SharedPreferences == empty, so <score> enters the top ten list, at first place!
-            scoreList.add((int)score);
-            dateList.add(date + ", " + time);
-            place = 0;
-        }
-
-        if(scoreList.isEmpty()){return;}
-
-        //Commit changes
-        SharedPreferences.Editor editor = getSharedPreferences(TOP_TEN_SCORES, MODE_PRIVATE).edit();
-        for(int i=0; i<scoreList.size(); i++) {
-            if(i>9){ break; }
-            editor.putInt(i+" score", scoreList.get(i));
-            editor.putString(i+" date", dateList.get(i));
-        }
-        showToastLong("You made it to top " + (place+1) + "! Well done!");
-        editor.apply();
     }
 
     //<score> is updated every turn, using the following formula:
@@ -422,27 +373,7 @@ public class BoardActivity extends AppCompatActivity {
                 }).create().show();
     }
 
-    /*
-    private void errorOccurredDialog(){
-        String title = getResources().getString(R.string.error), msg = getResources().getString(R.string.error_txt);
-        new AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage(msg)
-            .setNegativeButton(getResources().getString(R.string.main_menu), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    startActivity(new Intent(getApplicationContext(),MainActivity.class));
-                }
-            })
-            .setPositiveButton(getResources().getString(R.string.play_again), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    gameReset();
-                }
-            }).create().show();
-    }*/
-
     private void gameReset(){
-        evaluation=0;
         turnBlack = true; // First turn plays black
         score = 0;
 
@@ -459,6 +390,62 @@ public class BoardActivity extends AppCompatActivity {
 
         if(AI_MODE)
             chooseColorDialog();
+    }
+
+    //Top ten scores will be stored locally on device, as well as the date & time of the score.
+    //The score depends on how many tiles of your color the final board has, and how well you played overall.
+    private void commitScore(double score){
+        int currentScore, place = -1;
+        String pref;
+        String date = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
+        String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+        ArrayList<Integer> scoreList = new ArrayList();
+        ArrayList<String> dateList = new ArrayList();
+
+        if(gameMode==MEDIUM_AI){ pref = TOP_TEN_MEDIUM; }
+        else if(gameMode==HARD_AI){ pref = TOP_TEN_HARD; }
+        else if(gameMode==EXPERT_AI){ pref = TOP_TEN_EXPERT; }
+        else{ pref = TOP_TEN_EASY; }
+        SharedPreferences scores = getSharedPreferences( pref, MODE_PRIVATE);
+
+        score = fixScore(score);
+
+        //Insertion Sort
+        if(scores!=null){
+            for(int i=0; i<10; i++) {
+                currentScore = scores.getInt(i+" score", 0);
+                if(score>=currentScore && place == -1){
+                    scoreList.add((int)score);
+                    dateList.add(date + "    \t" + time);
+                    place = i;
+                }
+                if(currentScore>0){
+                    scoreList.add(currentScore);
+                    dateList.add(scores.getString(i+" date", " "));
+                }
+            }
+
+            if(place==-1){ // <score> will NOT enter the top ten scores => nothing changes
+                return;
+            }
+        }
+        else{ //SharedPreferences == empty, so <score> enters the top ten list, at first place!
+            scoreList.add((int)score);
+            dateList.add(date + ", " + time);
+            place = 0;
+        }
+
+        if(scoreList.isEmpty()){return;}
+
+        //Commit changes
+        SharedPreferences.Editor editor = getSharedPreferences(pref, MODE_PRIVATE).edit();
+        for(int i=0; i<scoreList.size(); i++) {
+            if(i>9){ break; }
+            editor.putInt(i+" score", scoreList.get(i));
+            editor.putString(i+" date", dateList.get(i));
+        }
+        showToastLong("Top " + (place+1) + "!");
+        editor.apply();
     }
 
     private void initialiseButtons(){
@@ -534,81 +521,7 @@ public class BoardActivity extends AppCompatActivity {
         board[7][6].setButton( findViewById(R.id.tile76) );
         board[7][7].setButton( findViewById(R.id.tile77) );
     }
-    /*private void initialiseButtons(){
-        button[0][0] = findViewById(R.id.tile00);
-        button[0][1] = findViewById(R.id.tile01);
-        button[0][2] = findViewById(R.id.tile02);
-        button[0][3] = findViewById(R.id.tile03);
-        button[0][4] = findViewById(R.id.tile04);
-        button[0][5] = findViewById(R.id.tile05);
-        button[0][6] = findViewById(R.id.tile06);
-        button[0][7] = findViewById(R.id.tile07);
-
-        button[1][0] = findViewById(R.id.tile10);
-        button[1][1] = findViewById(R.id.tile11);
-        button[1][2] = findViewById(R.id.tile12);
-        button[1][3] = findViewById(R.id.tile13);
-        button[1][4] = findViewById(R.id.tile14);
-        button[1][5] = findViewById(R.id.tile15);
-        button[1][6] = findViewById(R.id.tile16);
-        button[1][7] = findViewById(R.id.tile17);
-
-        button[2][0] = findViewById(R.id.tile20);
-        button[2][1] = findViewById(R.id.tile21);
-        button[2][2] = findViewById(R.id.tile22);
-        button[2][3] = findViewById(R.id.tile23);
-        button[2][4] = findViewById(R.id.tile24);
-        button[2][5] = findViewById(R.id.tile25);
-        button[2][6] = findViewById(R.id.tile26);
-        button[2][7] = findViewById(R.id.tile27);
-
-        button[3][0] = findViewById(R.id.tile30);
-        button[3][1] = findViewById(R.id.tile31);
-        button[3][2] = findViewById(R.id.tile32);
-        button[3][3] = findViewById(R.id.tile33);
-        button[3][4] = findViewById(R.id.tile34);
-        button[3][5] = findViewById(R.id.tile35);
-        button[3][6] = findViewById(R.id.tile36);
-        button[3][7] = findViewById(R.id.tile37);
-
-        button[4][0] = findViewById(R.id.tile40);
-        button[4][1] = findViewById(R.id.tile41);
-        button[4][2] = findViewById(R.id.tile42);
-        button[4][3] = findViewById(R.id.tile43);
-        button[4][4] = findViewById(R.id.tile44);
-        button[4][5] = findViewById(R.id.tile45);
-        button[4][6] = findViewById(R.id.tile46);
-        button[4][7] = findViewById(R.id.tile47);
-
-        button[5][0] = findViewById(R.id.tile50);
-        button[5][1] = findViewById(R.id.tile51);
-        button[5][2] = findViewById(R.id.tile52);
-        button[5][3] = findViewById(R.id.tile53);
-        button[5][4] = findViewById(R.id.tile54);
-        button[5][5] = findViewById(R.id.tile55);
-        button[5][6] = findViewById(R.id.tile56);
-        button[5][7] = findViewById(R.id.tile57);
-
-        button[6][0] = findViewById(R.id.tile60);
-        button[6][1] = findViewById(R.id.tile61);
-        button[6][2] = findViewById(R.id.tile62);
-        button[6][3] = findViewById(R.id.tile63);
-        button[6][4] = findViewById(R.id.tile64);
-        button[6][5] = findViewById(R.id.tile65);
-        button[6][6] = findViewById(R.id.tile66);
-        button[6][7] = findViewById(R.id.tile67);
-
-        button[7][0] = findViewById(R.id.tile70);
-        button[7][1] = findViewById(R.id.tile71);
-        button[7][2] = findViewById(R.id.tile72);
-        button[7][3] = findViewById(R.id.tile73);
-        button[7][4] = findViewById(R.id.tile74);
-        button[7][5] = findViewById(R.id.tile75);
-        button[7][6] = findViewById(R.id.tile76);
-        button[7][7] = findViewById(R.id.tile77);
-    }*/
 }
 
 //TODO: Online Mode
 //TODO: score sharedPreferences separate for each difficulty
-//TODO: Bug - when AI has no legal moves, player gets their turn as normal, BUT toast doesn't show up

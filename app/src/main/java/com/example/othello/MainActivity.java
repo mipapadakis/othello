@@ -28,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.scoresBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent startIntent = new Intent(getApplicationContext(),InfoActivity.class);
-                startIntent.putExtra(InfoActivity.KEY_SCORES, true);
+                Intent startIntent = new Intent(getApplicationContext(),ScoreActivity.class);
+                startIntent.putExtra(ScoreActivity.KEY_SCORES, true);
                 startActivity(startIntent);
             }
         });
