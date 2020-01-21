@@ -5,7 +5,7 @@ import java.util.Random;
 
 class AI {
     private static final int BIG_BONUS = 100;
-    private static final int SMALL_BONUS = 30;
+    private static final int SMALL_BONUS = 20;
     private static int difficulty;
 
     static void play(Tile[][] board, int color, int difficulty){
