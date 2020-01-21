@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
             .setNegativeButton(android.R.string.no, null)
             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface arg0, int arg1) {
-                    //TODO: save data?
                     //EXIT APPLICATION
                     moveTaskToBack(true);
                     android.os.Process.killProcess(android.os.Process.myPid());

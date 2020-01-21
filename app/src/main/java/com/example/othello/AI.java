@@ -21,10 +21,12 @@ class AI {
     private static int evaluateMove(Tile[][] board, int i, int j, int color){
         if(!board[i][j].isEmpty())
             return -1; //Can't place a tile on a non-Green position
+
         Tile examineTile = board[i][j];
         int score = 0;
 
-        //Check if a tile can be played on this i,j position:
+        //Check if a tile can be played on this i,j position, and count how many enemy tiles
+        //will be flipped. Add this number to the score.
         for (int direction = 0; direction < 8; direction++) {
             if(Tile.flipAllowed(board[i][j], color, direction)){
                 do{
@@ -38,34 +40,38 @@ class AI {
             }
         }
 
-        //Is it an invalid move?
-        if(score<=0)
+        if(score<=0) //Is it an invalid move?
             return -1;
 
-        ////////////////////////////////Calculate possible bonuses//////////////////////////////////
+        //////////////////////// Calculate possible bonuses (or penalties) /////////////////////////
 
         //Corners
-        if(board[i][j].isCorner()) {
+        if(board[i][j].isCorner())
             return score + BIG_BONUS;
-        }
 
         //Edges
         if(i==0 || i==7){
-            if(board[i][j].neighbor[2].getColor()==Tile.GREEN && board[i][j].neighbor[6].getColor()==Tile.GREEN){ //Check if East and West are both green
-                score = score + SMALL_BONUS;
-            }
+            if(board[i][j].neighbor[2].getColor()==Tile.GREEN && board[i][j].neighbor[6].getColor()==Tile.GREEN) //Check if East and West are both green
+                score += SMALL_BONUS;
         }
         else if(j==0 || j==7){
-            if(board[i][j].neighbor[0].getColor()==Tile.GREEN && board[i][j].neighbor[4].getColor()==Tile.GREEN){ //Check if North and South are both green
-                score = score + SMALL_BONUS;
-            }
-        }///////////////////////////////////////////////////////////////////////////////////////////
+            if(board[i][j].neighbor[0].getColor()==Tile.GREEN && board[i][j].neighbor[4].getColor()==Tile.GREEN) //Check if North and South are both green
+                score += SMALL_BONUS;
+        }
+
+        //If adjacent to a corner => penalty
+        if((i==0 || i==7) && j==1 || (i==0 || i==7) && j==6 ||(j==0 || j==7) && i==1 || (j==0 || j==7) && i==6)
+            score -= SMALL_BONUS;
+        else if((i==1 && j==1) || (i==6 && j==6) || (i==1 && j==6) || (i==6 && j==1))
+            score = 0;
+        ///////////////////////////////////////////////////////////////////////////////////////////
         return score;
     }
 
     //Make a <difficulty>-rated move and return its evaluation.
+    //For example, if difficulty==0, then calculateMove() calculates a move of level Easy.
     private static int calculateMove(Tile[][] board, int color, boolean makeTheMove){
-        ArrayList<int[]> availableMoves = new ArrayList<>(); //Save in this list all the available moves
+        ArrayList<int[]> availableMoves = new ArrayList<>(); //Save in this list all the available moves, plus their evaluation.
         Tile[][] tempBoard = new Tile[8][8];
         int[] item; // item = {i, j, <evaluation of move>}
 
@@ -83,7 +89,6 @@ class AI {
             return -BIG_BONUS;
 
         if(difficulty>0) {
-            difficulty--;
             //Create tempBoard:
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 8; j++) {
@@ -108,7 +113,8 @@ class AI {
                 //availableMoves.get(m)[2] = evaluation
                 Tile.flipTiles(tempBoard[availableMoves.get(m)[0]][availableMoves.get(m)[1]], color); //make the <m> move on the tempBoard.
 
-                //Calculate evaluation of the best move on tempBoard for the player (assume its a level "Easy" move):
+                //Calculate evaluation of the best move on tempBoard for the player (assume its a move of level <difficulty> - 1 ):
+                difficulty--;
                 if (color == Tile.BLACK) {
                     if (Tile.ableToMove(tempBoard, Tile.WHITE) == Tile.CANT_PLAY)
                         availableMoves.get(m)[2] += BIG_BONUS; //This AI's move results in the player's inability to calculateMove!

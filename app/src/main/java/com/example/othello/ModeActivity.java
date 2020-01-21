@@ -6,7 +6,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-
 import java.util.ArrayList;
 
 public class ModeActivity extends AppCompatActivity {
@@ -18,8 +17,8 @@ public class ModeActivity extends AppCompatActivity {
         setTitle(getString(R.string.choose_mode)); //ActionBar title
         initializeModeButtons();
 
-        //Online PvP not implemented yet => don't show the button
-        findViewById(R.id.onlineBtn).setVisibility(View.GONE);///////////////////////////////////
+        //////////////Online PvP not implemented yet => don't show the button///////////////////////
+        findViewById(R.id.onlineBtn).setVisibility(View.GONE);
     }
 
 
@@ -66,7 +65,12 @@ public class ModeActivity extends AppCompatActivity {
         findViewById(R.id.onlineBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createNoteIntent("PvP Online", "Not implemented yet");
+                ArrayList<String> list = new ArrayList<>();
+                list.add("PvP Online");
+                list.add("Not implemented yet");
+                Intent startIntent = new Intent(getApplicationContext(),InfoActivity.class);
+                startIntent.putExtra(InfoActivity.KEY_NOTE, list);
+                startActivity(startIntent);
             }
         });
 
@@ -78,14 +82,5 @@ public class ModeActivity extends AppCompatActivity {
                 startActivity(startIntent);
             }
         });
-    }
-
-    protected void createNoteIntent(String title, String text){
-        ArrayList<String> list = new ArrayList<>();
-        list.add(title);
-        list.add(text);
-        Intent startIntent = new Intent(getApplicationContext(),InfoActivity.class);
-        startIntent.putExtra(InfoActivity.KEY_NOTE, list);
-        startActivity(startIntent);
     }
 }

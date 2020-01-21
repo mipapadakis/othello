@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,19 +22,19 @@ public class BoardActivity extends AppCompatActivity {
     public static final String TOP_TEN_HARD = "10Hard";
     public static final String TOP_TEN_EXPERT = "10Expert";
     protected static final String KEY_MODE = "mode";
-    private ImageView nowPlaysIV; //Shows who is currently playing
+    private ImageView nowPlaysIV; //An ImageView that shows who is currently playing
     private TextView[] countTV; //Shows how many tiles of each color exist on board
     protected Toast toast;
     protected Tile[][] board;
     protected boolean turnBlack;
     protected static int gameMode;
-    protected static boolean AI_MODE;
 
     //Mode: player vs. AI
     protected static final int EASY_AI = 0;
     protected static final int MEDIUM_AI = 1;
     protected static final int HARD_AI = 2;
     protected static final int EXPERT_AI = 5; //The higher number, the more difficult
+    protected static boolean AI_MODE;
     protected static int playerColor;
     private double score;
 
@@ -139,6 +138,7 @@ public class BoardActivity extends AppCompatActivity {
     }
 
     protected void playAI(){
+        //Show toast if unable to move
         if(Tile.ableToMove(board, getAIColor())==Tile.CANT_PLAY){
             if(getCurrentColor()==Tile.BLACK) {
                 if(Tile.ableToMove(board, Tile.WHITE) == Tile.CANT_PLAY){ showToast(getResources().getString(R.string.no_moves)); }
@@ -186,6 +186,7 @@ public class BoardActivity extends AppCompatActivity {
         if(AI_MODE && !playsPlayer())
             playAI();
     }
+
     // int[0] = int[Tile.BLACK] = countTV of black tiles
     // int[1] = int[Tile.WHITE] = countTV of white tiles
     // int[2] = int[Tile.GREEN] = countTV of green tiles
@@ -257,6 +258,7 @@ public class BoardActivity extends AppCompatActivity {
         int ableToMove = Tile.ableToMove(board, getCurrentColor());
 
         if(ableToMove==Tile.BOARD_FULL){ gameOverDialog(Tile.BOARD_FULL); }
+        else if(countTiles(board)[getCurrentColor()]==0){ gameOverDialog(getCurrentColor()); }
         else if(ableToMove==Tile.CANT_PLAY){
             if(getCurrentColor()==Tile.BLACK) {
                 if(Tile.ableToMove(board, Tile.WHITE) == Tile.CANT_PLAY){
@@ -297,6 +299,17 @@ public class BoardActivity extends AppCompatActivity {
 
         if(why==Tile.CANT_PLAY)
             reason = getResources().getString(R.string.no_moves)+" ";
+        else if(why==Tile.WHITE) { //There are no White tiles!
+            reason = String.format(getString(R.string.early_victory), getString(R.string.white));
+            for(int i=countTiles(board)[Tile.BLACK]-4; i<60; i++)
+                score += i*i;
+        }
+        else if(why==Tile.BLACK) { //There are no Black tiles!
+            reason = String.format(getString(R.string.early_victory), getString(R.string.black));
+            //score += count[playerColor]*(60-count[Tile.GREEN]);
+            for(int i=countTiles(board)[Tile.WHITE]-4; i<60; i++)
+                score += i*i;
+        }
 
         if(winner==Tile.GREEN) { //TIE
             msg = getResources().getString(R.string.tie) + " " + reason + "\nScore: "+(int) fixScore(score);
@@ -444,7 +457,8 @@ public class BoardActivity extends AppCompatActivity {
             editor.putInt(i+" score", scoreList.get(i));
             editor.putString(i+" date", dateList.get(i));
         }
-        showToastLong("Top " + (place+1) + "!");
+        if(getWinner()==playerColor)
+            showToastLong("Top " + (place+1) + "!");
         editor.apply();
     }
 
@@ -522,6 +536,3 @@ public class BoardActivity extends AppCompatActivity {
         board[7][7].setButton( findViewById(R.id.tile77) );
     }
 }
-
-//TODO: Online Mode
-//TODO: score sharedPreferences separate for each difficulty

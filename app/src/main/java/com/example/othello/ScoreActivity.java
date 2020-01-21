@@ -1,6 +1,5 @@
 package com.example.othello;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,14 +10,14 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.TextView;
-
 import com.example.othello.ui.main.SectionsPagerAdapter;
 
 public class ScoreActivity extends AppCompatActivity {
     protected static final String KEY_SCORES = "scores";
+    private static String[] scoreTables; //Contains the score tables (for each difficulty)
+    private static int deletedTabIndex = -1;
     private int tabSelected;
-    private static String[] scoreTables;
+    TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,23 +28,28 @@ public class ScoreActivity extends AppCompatActivity {
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
 
-        TabLayout tabs = findViewById(R.id.tabs);
-        tabs.setupWithViewPager(viewPager);
-        tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        tabLayout = findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                tabSelected = tab.getPosition();
-            }
+            public void onTabSelected(TabLayout.Tab tab) { tabSelected = tab.getPosition(); }
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {}
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
 
-        scoreTables = new String[4];
-        for(int i=0; i<scoreTables.length; i++){
-            scoreTables[i] = getScores(i);
+        TabLayout.Tab deletedTab = tabLayout.getTabAt(deletedTabIndex);
+        if(deletedTab!=null){
+            deletedTab.select();
+            deletedTabIndex = -1;
+            Snackbar.make(findViewById(R.id.fab), "Done!", Snackbar.LENGTH_SHORT)
+                    .setAction("Action", null).show();
         }
+
+        scoreTables = new String[4];
+        for(int i=0; i<scoreTables.length; i++)
+            scoreTables[i] = getScores(i);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -58,10 +62,12 @@ public class ScoreActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 getSharedPreferences(getPref(tabSelected), MODE_PRIVATE).edit().clear().apply();
-                                scoreTables[tabSelected] = getString(R.string.no_scores);
-                                //TODO show results of delete immediately!
-                                Snackbar.make(view, "Scores deleted!", Snackbar.LENGTH_SHORT)
-                                        .setAction("Action", null).show();
+                                //scoreTables[tabSelected] = getString(R.string.no_scores);
+                                deletedTabIndex = tabLayout.getSelectedTabPosition();
+                                finish();
+                                overridePendingTransition(0, 0);
+                                startActivity(getIntent());
+                                overridePendingTransition(0, 0);
                             }
                         })
                         .setPositiveButton("Nope!", new DialogInterface.OnClickListener() {
@@ -89,9 +95,8 @@ public class ScoreActivity extends AppCompatActivity {
         SharedPreferences scores = getSharedPreferences(getPref(difficulty), MODE_PRIVATE);
 
         //Insertion Sort
-        if(scores==null || scores.getInt("0 score", -1)==-1){
+        if(scores==null || scores.getInt("0 score", -1)==-1)
             return getString(R.string.no_scores);
-        }
 
         for(int i=0; i<10; i++) {
             if(scores.getInt(i+" score", -1)==-1)

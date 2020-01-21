@@ -7,9 +7,9 @@ class Tile{
     static final int BLACK = 0; //Don't change the value!
     static final int WHITE = 1; //Don't change the value!
     static final int GREEN = 2; //Don't change the value!
-    private static final int CAN_PLAY = 100;
-    static final int CANT_PLAY = 101;
-    static final int BOARD_FULL = 102;
+    private static final int CAN_PLAY = 100; //Don't change the value!
+    static final int CANT_PLAY = 101;        //Don't change the value!
+    static final int BOARD_FULL = 102;       //Don't change the value!
     private Button button;
     private int color;
     Tile[] neighbor; //neighbor[0] is the tile above this board. Move in a clockwise rotation to find the rest (explained in detail in method setNeighbors).
