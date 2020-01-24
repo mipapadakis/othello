@@ -18,7 +18,7 @@ public class ModeActivity extends AppCompatActivity {
         initializeModeButtons();
 
         //////////////Online PvP not implemented yet => don't show the button///////////////////////
-        findViewById(R.id.onlineBtn).setVisibility(View.GONE);
+        //findViewById(R.id.onlineBtn).setVisibility(View.GONE);
     }
 
 
@@ -26,13 +26,11 @@ public class ModeActivity extends AppCompatActivity {
         findViewById(R.id.aiBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] difficulty = getResources().getStringArray(R.array.difficulty);
                 final Intent startIntent = new Intent(getApplicationContext(),BoardActivity.class);
 
                 AlertDialog.Builder mBuilder = new AlertDialog.Builder(ModeActivity.this);
-                mBuilder.setCancelable(false);
                 mBuilder.setTitle(getString(R.string.choose_difficulty));
-                mBuilder.setSingleChoiceItems(difficulty, -1, new DialogInterface.OnClickListener() {
+                mBuilder.setSingleChoiceItems(getResources().getStringArray(R.array.difficulty), -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         if(i==0){

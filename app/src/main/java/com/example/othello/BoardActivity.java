@@ -52,8 +52,6 @@ public class BoardActivity extends AppCompatActivity {
             getSupportActionBar().hide(); //Hide ActionBar
         turnBlack = true; //First turn plays black
         nowPlaysIV = findViewById(R.id.nowPlaysIV);
-
-        //Player vs. AI
         playerColor = Tile.BLACK;
 
         //What mode?
@@ -301,14 +299,17 @@ public class BoardActivity extends AppCompatActivity {
             reason = getResources().getString(R.string.no_moves)+" ";
         else if(why==Tile.WHITE) { //There are no White tiles!
             reason = String.format(getString(R.string.early_victory), getString(R.string.white));
-            for(int i=countTiles(board)[Tile.BLACK]-4; i<60; i++)
-                score += i*i;
+            if(AI_MODE && getAIColor()==why){
+                for(int i = countTiles(board)[Tile.BLACK]-4; i < 60; i++)
+                    score += i * i; //score += count[playerColor]*(60-count[Tile.GREEN]);
+            }
         }
         else if(why==Tile.BLACK) { //There are no Black tiles!
             reason = String.format(getString(R.string.early_victory), getString(R.string.black));
-            //score += count[playerColor]*(60-count[Tile.GREEN]);
-            for(int i=countTiles(board)[Tile.WHITE]-4; i<60; i++)
-                score += i*i;
+            if(AI_MODE && getAIColor()==why) {
+                for (int i = countTiles(board)[Tile.WHITE]-4; i < 60; i++)
+                    score += i * i;
+            }
         }
 
         if(winner==Tile.GREEN) { //TIE
@@ -369,9 +370,15 @@ public class BoardActivity extends AppCompatActivity {
         String title = getResources().getString(R.string.choose_color), msg = getResources().getString(R.string.choose_color_txt);
 
         new AlertDialog.Builder(this)
-                .setCancelable(false)
                 .setTitle(title)
                 .setMessage(msg)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        playerColor = Tile.BLACK;
+                        showToast(getString(R.string.choose_color_default));
+                    }
+                })
                 .setNegativeButton(getResources().getString(R.string.white), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
