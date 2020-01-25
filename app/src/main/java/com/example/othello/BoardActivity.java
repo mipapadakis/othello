@@ -332,19 +332,23 @@ public class BoardActivity extends AppCompatActivity {
         }
 
         new AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage(msg)
-            .setNegativeButton(getResources().getString(R.string.main_menu), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    startActivity(new Intent(getApplicationContext(),MainActivity.class));
-                }
-            })
-            .setPositiveButton(getResources().getString(R.string.play_again), new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    gameReset();
-                }
-            }).create().show();
+                .setTitle(title)
+                .setMessage(msg)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) { gameReset(); }
+                })
+                .setNegativeButton(getResources().getString(R.string.main_menu), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(getApplicationContext(),MainActivity.class));
+                    }
+                })
+                .setPositiveButton(getResources().getString(R.string.play_again), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        gameReset();
+                    }
+                }).create().show();
     }
 
     //<score> is updated every turn, using the following formula:

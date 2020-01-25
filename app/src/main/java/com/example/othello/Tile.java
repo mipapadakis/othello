@@ -42,6 +42,14 @@ class Tile{
     boolean isEdge(){ return neighbor[0]==null || neighbor[2]==null || neighbor[4]==null || neighbor[6]==null;}
     boolean isCorner(){ return (neighbor[6]==null && neighbor[0]==null) || (neighbor[0]==null && neighbor[2]==null)
                             || (neighbor[6]==null && neighbor[4]==null) || (neighbor[4]==null && neighbor[2]==null);}
+    /*Tile getN(){return neighbor[0];}
+    Tile getNE(){return neighbor[1];}
+    Tile getE(){return neighbor[2];}
+    Tile getSE(){return neighbor[3];}
+    Tile getS(){return neighbor[4];}
+    Tile getSW(){return neighbor[5];}
+    Tile getW(){return neighbor[6];}
+    Tile getNW(){return neighbor[7];}*/
 
     void setNeighbors(Tile[][] board, int row, int col){
 

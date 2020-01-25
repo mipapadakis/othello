@@ -6,6 +6,7 @@ import java.util.Random;
 class AI {
     private static final int BIG_BONUS = 100;
     private static final int SMALL_BONUS = 20;
+    private static final int PENALTY = -5;
     private static int difficulty;
 
     static void play(Tile[][] board, int color, int difficulty){
@@ -59,9 +60,16 @@ class AI {
                 score += SMALL_BONUS;
         }
 
+        /*//If adjacent to a corner & there is another tile on the opposite direction => penalty
+        if(  (board[i][j].getN().isCorner() && !board[i][j].getS().isEmpty())
+           ||(board[i][j].getS().isCorner() && !board[i][j].getN().isEmpty())
+           ||(board[i][j].getW().isCorner() && !board[i][j].getE().isEmpty())
+           ||(board[i][j].getE().isCorner() && !board[i][j].getW().isEmpty()))
+            score -= SMALL_BONUS;*/
+
         //If adjacent to a corner => penalty
         if((i==0 || i==7) && j==1 || (i==0 || i==7) && j==6 ||(j==0 || j==7) && i==1 || (j==0 || j==7) && i==6)
-            score -= SMALL_BONUS;
+            score += PENALTY;
         else if((i==1 && j==1) || (i==6 && j==6) || (i==1 && j==6) || (i==6 && j==1))
             score = 0;
         ///////////////////////////////////////////////////////////////////////////////////////////
