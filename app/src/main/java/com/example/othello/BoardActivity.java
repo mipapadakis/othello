@@ -324,11 +324,13 @@ public class BoardActivity extends AppCompatActivity {
                 msg = reason + getResources().getString(R.string.win_black);
         }
         else{
-            if( winner == playerColor )
+            if( winner == playerColor ){
                 msg = getResources().getString(R.string.you_won) + " " + reason + "\nScore: "+(int) fixScore(score);
+                commitScore(score);
+            }
             else
                 msg = getResources().getString(R.string.you_lost) + " " + reason + "\nScore: "+(int) fixScore(score);
-            commitScore(score);
+
         }
 
         new AlertDialog.Builder(this)

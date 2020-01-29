@@ -49,7 +49,7 @@
     <string name="count">\ %d\ \ </string>
     <string name="cant_play">%s has no available move. %s plays again.</string>
     <string name="no_moves">Neither of the players have legal moves.</string>
-    <string name="early_victory">%s has no tiles left.</string>
+    <string name="early_victory">There are no %s tiles left.</string>
     <string name="game_over">Game Over!</string>
     <string name="win_white">White wins.</string>
     <string name="win_black">Black wins.</string>

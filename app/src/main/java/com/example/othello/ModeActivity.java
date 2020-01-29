@@ -18,7 +18,7 @@ public class ModeActivity extends AppCompatActivity {
         initializeModeButtons();
 
         //////////////Online PvP not implemented yet => don't show the button///////////////////////
-        //findViewById(R.id.onlineBtn).setVisibility(View.GONE);
+        findViewById(R.id.onlineBtn).setVisibility(View.GONE);
     }
 
 
