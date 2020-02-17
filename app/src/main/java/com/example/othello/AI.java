@@ -9,6 +9,17 @@ class AI {
     private static final int PENALTY = -5;
     private static int difficulty;
 
+    private static final int[][] ratingTable =
+            {   {200,   0,  40,  40,  40,  40,   0, 200},
+                {  0,-200,   0,   0,   0,   0,-200,   0},
+                { 40,   0,  10,  10,  10,  10,   0,  40},
+                { 40,   0,  10,   5,   5,  10,   0,  40},
+                { 40,   0,  10,   5,   5,  10,   0,  40},
+                { 40,   0,  10,  10,  10,  10,   0,  40},
+                {  0,-200,   0,   0,   0,   0,-200,   0},
+                {200,   0,  40,  40,  40,  40,   0, 200}
+            };
+
     static void play(Tile[][] board, int color, int difficulty){
         AI.difficulty = difficulty;
         if(difficulty<0)
@@ -44,35 +55,9 @@ class AI {
         if(score<=0) //Is it an invalid move?
             return -1;
 
-        //////////////////////// Calculate possible bonuses (or penalties) /////////////////////////
+        ///////////POSITION RATING BONUS:///////////
+        score += ratingTable[i][j];
 
-        //Corners
-        if(board[i][j].isCorner())
-            return score + BIG_BONUS;
-
-        //Edges
-        if(i==0 || i==7){
-            if(board[i][j].neighbor[2].getColor()==Tile.GREEN && board[i][j].neighbor[6].getColor()==Tile.GREEN) //Check if East and West are both green
-                score += SMALL_BONUS;
-        }
-        else if(j==0 || j==7){
-            if(board[i][j].neighbor[0].getColor()==Tile.GREEN && board[i][j].neighbor[4].getColor()==Tile.GREEN) //Check if North and South are both green
-                score += SMALL_BONUS;
-        }
-
-        /*//If adjacent to a corner & there is another tile on the opposite direction => penalty
-        if(  (board[i][j].getN().isCorner() && !board[i][j].getS().isEmpty())
-           ||(board[i][j].getS().isCorner() && !board[i][j].getN().isEmpty())
-           ||(board[i][j].getW().isCorner() && !board[i][j].getE().isEmpty())
-           ||(board[i][j].getE().isCorner() && !board[i][j].getW().isEmpty()))
-            score -= SMALL_BONUS;*/
-
-        //If adjacent to a corner => penalty
-        if((i==0 || i==7) && j==1 || (i==0 || i==7) && j==6 ||(j==0 || j==7) && i==1 || (j==0 || j==7) && i==6)
-            score += PENALTY;
-        else if((i==1 && j==1) || (i==6 && j==6) || (i==1 && j==6) || (i==6 && j==1))
-            score = 0;
-        ///////////////////////////////////////////////////////////////////////////////////////////
         return score;
     }
 

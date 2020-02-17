@@ -33,7 +33,7 @@ public class BoardActivity extends AppCompatActivity {
     protected static final int EASY_AI = 0;
     protected static final int MEDIUM_AI = 1;
     protected static final int HARD_AI = 2;
-    protected static final int EXPERT_AI = 5; //The higher number, the more difficult
+    protected static final int EXPERT_AI = 8; //The higher number, the more difficult
     protected static boolean AI_MODE;
     protected static int playerColor;
     private double score;
@@ -139,12 +139,12 @@ public class BoardActivity extends AppCompatActivity {
         //Show toast if unable to move
         if(Tile.ableToMove(board, getAIColor())==Tile.CANT_PLAY){
             if(getCurrentColor()==Tile.BLACK) {
-                if(Tile.ableToMove(board, Tile.WHITE) == Tile.CANT_PLAY){ showToast(getResources().getString(R.string.no_moves)); }
                 showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
+                if(Tile.ableToMove(board, Tile.WHITE) == Tile.CANT_PLAY){ showToast(getResources().getString(R.string.no_moves)); gameOverDialog(Tile.CANT_PLAY); return;}
             }
             else{
-                if(Tile.ableToMove(board, Tile.BLACK) == Tile.CANT_PLAY ){ showToastLong(getResources().getString(R.string.no_moves)); }
                 showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.white), getResources().getString(R.string.black)));
+                if(Tile.ableToMove(board, Tile.BLACK) == Tile.CANT_PLAY ){ showToastLong(getResources().getString(R.string.no_moves)); gameOverDialog(Tile.CANT_PLAY); return;}
             }
         }
 
@@ -171,8 +171,6 @@ public class BoardActivity extends AppCompatActivity {
     }
 
     private void nextTurn(){
-        int[] count = countTiles(board);
-        score += count[playerColor]*(60-count[Tile.GREEN]);
         updateCounts();
 
         turnBlack=!turnBlack;
@@ -267,7 +265,7 @@ public class BoardActivity extends AppCompatActivity {
                 showToastLong(String.format(getResources().getString(R.string.cant_play), getResources().getString(R.string.black), getResources().getString(R.string.white)));
             }
             else{
-                if(Tile.ableToMove(board, Tile.BLACK) == Tile.CANT_PLAY ){
+                if(Tile.ableToMove(board, Tile.BLACK) == Tile.CANT_PLAY){
                     showToastLong(getResources().getString(R.string.no_moves));
                     gameOverDialog(Tile.CANT_PLAY);
                 }
@@ -293,27 +291,30 @@ public class BoardActivity extends AppCompatActivity {
 
     private void gameOverDialog(int why){
         String title = getResources().getString(R.string.game_over), msg, reason = "";
+        int[] count = countTiles(board);
         int winner = getWinner();
+
+        score = count[playerColor]*1000/64;
 
         if(why==Tile.CANT_PLAY)
             reason = getResources().getString(R.string.no_moves)+" ";
         else if(why==Tile.WHITE) { //There are no White tiles!
             reason = String.format(getString(R.string.early_victory), getString(R.string.white));
-            if(AI_MODE && getAIColor()==why){
-                for(int i = countTiles(board)[Tile.BLACK]-4; i < 60; i++)
-                    score += i * i; //score += count[playerColor]*(60-count[Tile.GREEN]);
-            }
+            if(AI_MODE && playerColor==winner)
+                score = 1000;
+            else
+                score = 0;
         }
         else if(why==Tile.BLACK) { //There are no Black tiles!
             reason = String.format(getString(R.string.early_victory), getString(R.string.black));
-            if(AI_MODE && getAIColor()==why) {
-                for (int i = countTiles(board)[Tile.WHITE]-4; i < 60; i++)
-                    score += i * i;
-            }
+            if(AI_MODE && playerColor==winner)
+                score = 1000;
+            else
+                score = 0;
         }
 
         if(winner==Tile.GREEN) { //TIE
-            msg = getResources().getString(R.string.tie) + " " + reason + "\nScore: "+(int) fixScore(score);
+            msg = getResources().getString(R.string.tie) + " " + reason + "\nScore: "+(int) score;
             if(gameMode!=MODE_TWO_USERS)
                 commitScore(score);
         }
@@ -325,11 +326,11 @@ public class BoardActivity extends AppCompatActivity {
         }
         else{
             if( winner == playerColor ){
-                msg = getResources().getString(R.string.you_won) + " " + reason + "\nScore: "+(int) fixScore(score);
+                msg = getResources().getString(R.string.you_won) + " " + reason + "\nScore: "+(int) score;
                 commitScore(score);
             }
             else
-                msg = getResources().getString(R.string.you_lost) + " " + reason + "\nScore: "+(int) fixScore(score);
+                msg = getResources().getString(R.string.you_lost) + " " + reason + "\nScore: "+(int) score;
 
         }
 
@@ -351,25 +352,6 @@ public class BoardActivity extends AppCompatActivity {
                         gameReset();
                     }
                 }).create().show();
-    }
-
-    //<score> is updated every turn, using the following formula:
-    //    score += count[playerColor]*(60-count[Tile.GREEN]);
-    //This formula creates certain minimum and maximum values for the <score>, depending on color.
-    //For example, I calculated that if you have BLACK tiles, in the worst case scenario your score
-    //is 3570, and in the best case scenario its 77620. For WHITE, the interval is [3510, 77560].
-    //So, I choose to scale the score for both colors, using a mutual interval: [0,1000].
-    private double fixScore(double score){
-        int min,max;
-        if(playerColor==Tile.BLACK){
-            min=3570;
-            max=77620;
-        }
-        else{
-            min=3510;
-            max=77560;
-        }
-        return ((score-min)/(max-min))*1000; //Scale the score to the interval [0,1000]
     }
 
     private void chooseColorDialog(){
@@ -400,6 +382,11 @@ public class BoardActivity extends AppCompatActivity {
     }
 
     private void gameReset(){
+        finish();
+        overridePendingTransition(0, 0);
+        startActivity(getIntent());
+        overridePendingTransition(0, 0);
+        /*
         turnBlack = true; // First turn plays black
         score = 0;
 
@@ -415,7 +402,7 @@ public class BoardActivity extends AppCompatActivity {
         updateCounts();
 
         if(AI_MODE)
-            chooseColorDialog();
+            chooseColorDialog();*/
     }
 
     //Top ten scores will be stored locally on device, as well as the date & time of the score.
@@ -433,8 +420,6 @@ public class BoardActivity extends AppCompatActivity {
         else if(gameMode==EXPERT_AI){ pref = TOP_TEN_EXPERT; }
         else{ pref = TOP_TEN_EASY; }
         SharedPreferences scores = getSharedPreferences( pref, MODE_PRIVATE);
-
-        score = fixScore(score);
 
         //Insertion Sort
         if(scores!=null){
