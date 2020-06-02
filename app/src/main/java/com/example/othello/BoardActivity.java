@@ -30,13 +30,12 @@ public class BoardActivity extends AppCompatActivity {
     protected static int gameMode;
 
     //Mode: player vs. AI
-    protected static final int EASY_AI = 0;
-    protected static final int MEDIUM_AI = 1;
-    protected static final int HARD_AI = 2;
-    protected static final int EXPERT_AI = 8; //The higher number, the more difficult
+    protected static final int EASY_AI = 1;
+    protected static final int MEDIUM_AI = 10;
+    protected static final int HARD_AI = 30;
+    protected static final int EXPERT_AI = 60; //The higher number, the more difficult
     protected static boolean AI_MODE;
     protected static int playerColor;
-    private double score;
 
     // Mode: online
     protected static final int MODE_ONLINE=200;
@@ -79,7 +78,6 @@ public class BoardActivity extends AppCompatActivity {
                 board[i][j] = new Tile();
             }
         }
-        initialiseButtons();
         for(int i=0; i<8; i++){
             for(int j=0; j<8; j++){
                 board[i][j].setNeighbors(board, i, j);
@@ -91,11 +89,14 @@ public class BoardActivity extends AppCompatActivity {
         board[4][3].setColor(Tile.BLACK);
         board[4][4].setColor(Tile.WHITE);
 
+        initializeButtons();
         updateCounts();
         addClickListeners();
 
+
         if(AI_MODE)
             chooseColorDialog();
+
     }
 
     protected void onPause() {
@@ -294,7 +295,8 @@ public class BoardActivity extends AppCompatActivity {
         int[] count = countTiles(board);
         int winner = getWinner();
 
-        score = count[playerColor]*1000/64;
+        double score = 1000 * count[playerColor] / 64;
+        toast.cancel();
 
         if(why==Tile.CANT_PLAY)
             reason = getResources().getString(R.string.no_moves)+" ";
@@ -460,7 +462,7 @@ public class BoardActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    private void initialiseButtons(){
+    private void initializeButtons(){
         board[0][0].setButton( findViewById(R.id.tile00) );
         board[0][1].setButton( findViewById(R.id.tile01) );
         board[0][2].setButton( findViewById(R.id.tile02) );

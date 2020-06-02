@@ -24,7 +24,20 @@ class AI {
         AI.difficulty = difficulty;
         if(difficulty<0)
             AI.difficulty=0;
+        reduceUnnecessaryCalculations(board, difficulty);
         calculateMove(board, color, true);
+    }
+
+    private static void reduceUnnecessaryCalculations(Tile[][] board, int difficulty){
+        int countGreen = 0;
+        for(Tile[] row : board){
+            for(final Tile tile: row){
+                if(tile.isEmpty())
+                    countGreen++;
+            }
+        }
+        if(difficulty>countGreen)
+            AI.difficulty = countGreen;
     }
 
     //Suppose that we placed a <color> tile in the position (i,j) of board.
