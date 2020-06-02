@@ -78,6 +78,7 @@ public class BoardActivity extends AppCompatActivity {
                 board[i][j] = new Tile();
             }
         }
+        initializeButtons();
         for(int i=0; i<8; i++){
             for(int j=0; j<8; j++){
                 board[i][j].setNeighbors(board, i, j);
@@ -89,7 +90,7 @@ public class BoardActivity extends AppCompatActivity {
         board[4][3].setColor(Tile.BLACK);
         board[4][4].setColor(Tile.WHITE);
 
-        initializeButtons();
+
         updateCounts();
         addClickListeners();
 
